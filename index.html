@@ -1044,24 +1044,22 @@ function UsersScreen({ accessToken, currentUserId, onCancel }) {
 // ---- Anleitung (Kapitel ohne Fragen) ----
 function GuideDiagram() {
   const ink = "#58585a";
-  // Eine Lok: Körper mit schräger Führerstandsfront, Frontfenster, Drehgestelle und gehobenem Stromabnehmer.
-  // dir = -1: Führerstand links, dir = 1: Führerstand rechts.
-  const loco = (x0, dir, fill, title, sub) => {
+  // Eine Lok (Vectron-Form): Führerstand mit schräger Front an beiden Enden, je ein Frontfenster,
+  // zwei Drehgestelle und ein gehobener Stromabnehmer. Beide Loks sind identisch gezeichnet.
+  const loco = (x0, fill, title, sub) => {
     const x1 = x0 + 165;
-    const front = dir < 0 ? x0 : x1;
-    const back = dir < 0 ? x1 : x0;
-    const slope = 16 * (dir < 0 ? 1 : -1);
-    const body = "M" + front + ",100 L" + front + ",78 L" + (front + slope) + ",56 L" + (back) + ",56 L" + back + ",100 Z";
-    const wx = dir < 0 ? [x0 + 14, x0 + 30, x0 + 135, x0 + 151] : [x0 + 14, x0 + 30, x0 + 135, x0 + 151];
     const cx = (x0 + x1) / 2;
-    const pantoX = dir < 0 ? x0 + 105 : x0 + 60;
-    const winA = front + 4 * (dir < 0 ? 1 : -1);
-    const winB = front + 22 * (dir < 0 ? 1 : -1);
+    const body = "M" + x0 + ",100 L" + x0 + ",78 L" + (x0 + 16) + ",56 L" + (x1 - 16) + ",56 L" + x1 + ",78 L" + x1 + ",100 Z";
+    const winL = "M" + (x0 + 4) + ",76 L" + (x0 + 12) + ",61 L" + (x0 + 30) + ",61 L" + (x0 + 30) + ",76 Z";
+    const winR = "M" + (x1 - 4) + ",76 L" + (x1 - 12) + ",61 L" + (x1 - 30) + ",61 L" + (x1 - 30) + ",76 Z";
+    const wx = [x0 + 18, x0 + 36, x1 - 36, x1 - 18];
+    const px = cx;
     return (
       <g>
         <path d={body} fill={fill} stroke={ink} strokeWidth="1.8" strokeLinejoin="round" />
-        <path d={"M" + winA + ",76 L" + (winA + 8 * (dir < 0 ? 1 : -1)) + ",61 L" + winB + ",61 L" + winB + ",76 Z"} fill="#ffffff" stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
-        <line x1={x0 + 8} y1="96" x2={x1 - 8} y2="96" stroke={ink} strokeWidth="0.8" opacity="0.5" />
+        <path d={winL} fill="#ffffff" stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+        <path d={winR} fill="#ffffff" stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+        <line x1={x0 + 6} y1="96" x2={x1 - 6} y2="96" stroke={ink} strokeWidth="0.8" opacity="0.5" />
         {wx.map((w, k) => (
           <g key={k}>
             <circle cx={w} cy="105" r="6.5" fill="#ffffff" stroke={ink} strokeWidth="1.6" />
@@ -1069,30 +1067,34 @@ function GuideDiagram() {
           </g>
         ))}
         {/* Stromabnehmer, gehoben */}
-        <rect x={pantoX - 8} y="53" width="16" height="3" fill={ink} />
-        <polyline points={(pantoX - 7) + ",53 " + (pantoX + 7) + ",38 " + (pantoX - 3) + ",24"} fill="none" stroke={ink} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
-        <line x1={pantoX - 12} y1="23" x2={pantoX + 8} y2="23" stroke={ink} strokeWidth="2.4" strokeLinecap="round" />
+        <rect x={px - 9} y="53" width="18" height="3" fill={ink} />
+        <polyline points={(px - 8) + ",53 " + (px + 7) + ",38 " + (px - 3) + ",24"} fill="none" stroke={ink} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+        <line x1={px - 12} y1="23" x2={px + 8} y2="23" stroke={ink} strokeWidth="2.4" strokeLinecap="round" />
         <text x={cx} y="76" textAnchor="middle" fontSize="14" fontWeight="700" fill="#231f20">{title}</text>
         <text x={cx} y="91" textAnchor="middle" fontSize="10.5" fill="#231f20">{sub}</text>
       </g>
     );
   };
   return (
-    <svg viewBox="0 0 400 175" width="100%" role="img" aria-label="Schema der Doppeltraktion: links die führende, besetzte Lok 1, rechts die geführte, unbesetzte Lok 2">
+    <svg viewBox="0 0 400 190" width="100%" role="img" aria-label="Schema der Doppeltraktion: links die führende, besetzte Lok 1 mit Fahrtrichtung nach links, rechts die geführte, unbesetzte Lok 2">
       {/* Fahrleitung und Schiene */}
       <line x1="4" y1="21" x2="396" y2="21" stroke="#888687" strokeWidth="1.4" />
       <line x1="4" y1="113" x2="396" y2="113" stroke="#888687" strokeWidth="2" />
-      {loco(12, -1, "#eaf7de", "Lok 1", "führend, besetzt")}
-      {loco(223, 1, "#f6f7f7", "Lok 2", "geführt, unbesetzt")}
+      {loco(12, "#eaf7de", "Lok 1", "führend, besetzt")}
+      {loco(223, "#f6f7f7", "Lok 2", "geführt, unbesetzt")}
       {/* Kupplung und Kabel zwischen den Loks */}
       <line x1="177" y1="92" x2="223" y2="92" stroke="#231f20" strokeWidth="3" />
       <line x1="177" y1="84" x2="223" y2="84" stroke="#75c93b" strokeWidth="3" />
+      {/* Fahrtrichtung von Lok 1: nach links */}
+      <line x1="150" y1="127" x2="34" y2="127" stroke="#231f20" strokeWidth="2.4" strokeLinecap="round" />
+      <polyline points="44,120 34,127 44,134" fill="none" stroke="#231f20" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      <text x="92" y="144" textAnchor="middle" fontSize="10.5" fill={ink}>Fahrtrichtung</text>
       <text x="200" y="134" textAnchor="middle" fontSize="10.5" fill={ink}>Kupplung, HL/HB</text>
       <text x="200" y="149" textAnchor="middle" fontSize="10.5" fill="#5aa32b" fontWeight="700">UIC-Kabel</text>
-      <text x="94" y="140" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZMS</text>
-      <text x="94" y="155" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
-      <text x="306" y="140" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZMS</text>
-      <text x="306" y="155" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <text x="306" y="165" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZMS</text>
+      <text x="306" y="180" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <text x="92" y="165" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZMS</text>
+      <text x="92" y="180" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
     </svg>
   );
 }
