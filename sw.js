@@ -4,7 +4,7 @@
 // Supabase project itself (auth/rest/functions) - those must always be live,
 // since they carry the actual questions, progress and login data.
 
-const CACHE_NAME = "lokwerk300-shell-v1";
+const CACHE_NAME = "lokwerk300-shell-v2";
 
 const APP_SHELL = [
   "./",
@@ -69,6 +69,26 @@ self.addEventListener("fetch", (event) => {
   }
   // Only handle simple GET requests; let everything else pass through untouched.
   if (event.request.method !== "GET") {
+    return;
+  }
+
+  // App page itself (index.html / start URL): network first, so a freshly uploaded
+  // version shows up on the very next open. Offline it falls back to the cached copy.
+  const isPage =
+    event.request.mode === "navigate" ||
+    /\/(index\.html)?(\?.*)?$/.test(new URL(url).pathname + new URL(url).search);
+  if (isPage) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((c) => c || caches.match("./index.html") || caches.match("./")))
+    );
     return;
   }
 
