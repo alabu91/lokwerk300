@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LokWerk300</title>
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#75c93b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="LokWerk300" />
+<meta name="mobile-web-app-capable" content="yes" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f2f3f3; }
+  #root { min-height: 100vh; }
+
+        .fdv-app {
+          --bg: #f2f3f3;
+          --panel: #ffffff;
+          --panel-border: #dcdedd;
+          --panel-alt: #f6f7f7;
+          --text: #231f20;
+          --text-dim: #75767a;
+          --green: #75c93b;
+          --green-dark: #5aa32b;
+          --green-dim: #eaf7de;
+          --red: #d1453f;
+          --red-dim: #fbebea;
+          --amber: #c98a2b;
+          --amber-dim: #f7ecdb;
+          --grey: #888687;
+          --grey-dark: #58585a;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 20px 16px 40px;
+          max-width: 640px;
+          margin: 0 auto;
+        }
+        .fdv-app * { box-sizing: border-box; }
+        .fdv-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+        .fdv-title {
+          font-size: 22px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .fdv-sub {
+          color: var(--text-dim);
+          font-size: 13px;
+          margin: 2px 0 20px;
+        }
+        .fdv-railline {
+          height: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            var(--panel-border) 0px,
+            var(--panel-border) 10px,
+            transparent 10px,
+            transparent 16px
+          );
+          margin-bottom: 20px;
+          border-radius: 2px;
+        }
+        .fdv-training-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+        .fdv-training-btn {
+          flex: 1;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 14px 12px;
+          color: var(--text);
+          text-align: left;
+          cursor: pointer;
+          font-size: 13px;
+          transition: border-color 0.15s ease, transform 0.1s ease;
+        }
+        .fdv-training-btn:active { transform: scale(0.98); }
+        .fdv-training-btn:hover { border-color: var(--green); }
+        .fdv-training-btn.disabled {
+          opacity: 0.45;
+          cursor: default;
+          pointer-events: none;
+        }
+        .fdv-training-btn .label {
+          display: block;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
+        .fdv-training-btn .meta {
+          color: var(--text-dim);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .fdv-section-label {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+          margin: 24px 0 8px;
+        }
+        .fdv-chapter-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          background: var(--panel-border);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .fdv-chapter-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel);
+          padding: 13px 14px;
+          cursor: pointer;
+          border: none;
+          width: 100%;
+          text-align: left;
+          color: var(--text);
+          font-size: 14px;
+        }
+        .fdv-chapter-row:hover { background: var(--panel-alt); }
+        .fdv-chapter-code {
+          font-variant-numeric: tabular-nums;
+          font-weight: 700;
+          font-size: 13px;
+          color: var(--text-dim);
+          width: 46px;
+          flex-shrink: 0;
+        }
+        .fdv-chapter-title {
+          flex: 1;
+          font-size: 14px;
+        }
+        .fdv-mastery {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-text {
+          font-size: 11px;
+          color: var(--text-dim);
+          font-variant-numeric: tabular-nums;
+          min-width: 34px;
+          text-align: right;
+        }
+        /* Quiz screen */
+        .fdv-quiz-top {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .fdv-back-btn {
+          background: none;
+          border: 1px solid var(--panel-border);
+          color: var(--text-dim);
+          border-radius: 5px;
+          padding: 6px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .fdv-quiz-title {
+          font-size: 13px;
+          color: var(--text-dim);
+          flex: 1;
+        }
+        .fdv-progress-track {
+          display: flex;
+          gap: 3px;
+          margin-bottom: 18px;
+        }
+        .fdv-progress-tick {
+          height: 4px;
+          flex: 1;
+          border-radius: 2px;
+          background: var(--panel-border);
+        }
+        .fdv-progress-tick.current { background: var(--grey-dark); }
+        .fdv-progress-tick.correct { background: var(--green); }
+        .fdv-progress-tick.wrong { background: var(--red); }
+        .fdv-card {
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 20px 18px;
+        }
+        .fdv-type-tag {
+          display: inline-block;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--grey-dark);
+          border: 1px solid var(--grey);
+          border-radius: 10px;
+          padding: 2px 8px;
+          margin-bottom: 10px;
+        }
+        .fdv-question-image {
+          display: block;
+          width: auto;
+          max-width: 45%;
+          max-height: 120px;
+          object-fit: contain;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          margin: 0 auto 14px;
+        }
+        .fdv-question {
+          font-size: 17px;
+          font-weight: 600;
+          line-height: 1.4;
+          margin: 0 0 18px;
+        }
+        .fdv-options {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .fdv-options-row {
+          flex-direction: row;
+        }
+        .fdv-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+          color: var(--text);
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          line-height: 1.35;
+        }
+        .fdv-option-tf { flex: 1; justify-content: center; }
+        .fdv-option:hover:not(.locked) { border-color: var(--grey); }
+        .fdv-option.picked { border-color: var(--grey-dark); }
+        .fdv-option.locked { cursor: default; }
+        .fdv-option.correct-answer {
+          border-color: var(--green);
+          background: var(--green-dim);
+        }
+        .fdv-option.wrong-answer {
+          border-color: var(--red);
+          background: var(--red-dim);
+        }
+        .fdv-option-light {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+        }
+        .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
+        .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
+        .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-checkbox-box {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          color: #ffffff;
+        }
+        .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
+        .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
+        /* TFM table */
+        .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
+        .fdv-tfm-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
+        .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
+        .fdv-tfm-pill {
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+          border-radius: 5px;
+          padding: 7px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
+        .fdv-tfm-pill.locked { cursor: default; }
+        .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+        .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+        /* Matching */
+        .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
+        .fdv-matching-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
+        .fdv-matching-select {
+          flex: 1;
+          min-width: 140px;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--panel-border);
+          border-radius: 5px;
+          padding: 8px 8px;
+          font-size: 13px;
+        }
+        .fdv-matching-select.correct-answer { border-color: var(--green); }
+        .fdv-matching-select.wrong-answer { border-color: var(--red); }
+        .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
+        .fdv-check-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--panel-border);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
+        .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
+        .fdv-explanation {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid var(--panel-border);
+          font-size: 13px;
+          color: var(--text-dim);
+          line-height: 1.5;
+        }
+        .fdv-explanation strong { color: var(--text); }
+        .fdv-next-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--green);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-next-btn:hover { filter: brightness(1.08); }
+        /* Result screen */
+        .fdv-result-score {
+          font-size: 44px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          margin: 6px 0 2px;
+        }
+        .fdv-result-sub {
+          color: var(--text-dim);
+          font-size: 14px;
+          margin-bottom: 24px;
+        }
+        .fdv-result-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .fdv-result-btn {
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+        }
+        .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
+        .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
+              /* Login + form additions */
+        .fdv-login-wrap {
+          max-width: 380px;
+          margin: 60px auto 0;
+        }
+        .fdv-login-card {
+          margin-top: 16px;
+        }
+        .fdv-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-dim);
+          margin: 14px 0 5px;
+        }
+        .fdv-label:first-child { margin-top: 0; }
+        .fdv-input {
+          width: 100%;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 11px;
+          font-size: 14px;
+          color: var(--text);
+          font-family: inherit;
+        }
+        .fdv-input-narrow { width: auto; flex-shrink: 0; }
+        .fdv-form-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .fdv-form-row .fdv-input { flex: 1; }
+        .fdv-form-error {
+          color: var(--red);
+          font-size: 13px;
+          margin-top: 10px;
+        }
+        .fdv-form-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
+        .fdv-add-btn {
+          width: 100%;
+          background: var(--panel);
+          border: 1px dashed var(--grey);
+          border-radius: 6px;
+          padding: 12px;
+          color: var(--grey-dark);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 22px;
+        }
+        .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+        .fdv-card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
+        .fdv-card-head-actions { display: flex; align-items: center; gap: 12px; }
+        .fdv-source-tag { font-size: 11.5px; color: var(--text-dim); margin: -6px 0 12px; }
+        .fdv-image-preview-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .fdv-image-preview { max-width: 120px; max-height: 80px; border-radius: 4px; border: 1px solid var(--panel-border); object-fit: contain; background: var(--panel-alt); }
+        .fdv-link-btn {
+          background: none;
+          border: none;
+          padding: 4px 0;
+          font-size: 12px;
+          color: var(--grey-dark);
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        .fdv-link-btn:hover { color: var(--text); }
+        .fdv-delete-btn { width: 100%; margin-top: 10px; }
+        .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .fdv-trash-item {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+        }
+        .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+        .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
+        .fdv-trash-item .fdv-form-actions { margin-top: 0; }
+        .fdv-offline-banner {
+          background: var(--amber-dim);
+          border: 1px solid var(--amber);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-size: 12.5px;
+          line-height: 1.4;
+          margin-bottom: 16px;
+        }
+        .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
+        .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
+        .fdv-prev-btn {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 13px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .fdv-prev-btn:hover { border-color: var(--grey); }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  window.sb = createClient(
+    "https://nsidzovmagohzuwvikev.supabase.co",
+    "sb_publishable_Z5H4qhw4pkVjO27eqG9aBQ_0w6RwTyN"
+  );
+</script>
+<script>
+  window.addEventListener('error', function (e) {
+    var root = document.getElementById('root');
+    if (root && !root.hasChildNodes()) {
+      root.innerHTML = '<pre style="padding:20px;color:#c0392b;font-family:monospace;white-space:pre-wrap;">Fehler beim Laden der App:\n' + (e.message || e) + '</pre>';
+    }
+  });
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {
+        // Kein Offline-Modus verfügbar, aber die App funktioniert online trotzdem normal weiter.
+      });
+    });
+  }
+</script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+const sb = window.sb;
+
+const TYPE_LABEL = {
+  sc: "Single Choice",
+  ms: "Multiple Select",
+  tf: "Wahr / Falsch",
+  tfm: "Wahr/Falsch-Matrix",
+  matching: "Zuordnung",
+};
+
+function shuffledCopy(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffledIndices(n) {
+  return shuffledCopy(Array.from({ length: n }, (_, i) => i));
+}
+
+function randomizeQuestion(q) {
+  if (q.type === "sc") {
+    const order = shuffledIndices(q.options.length);
+    return { ...q, options: order.map((i) => q.options[i]), correctIndex: order.indexOf(q.correctIndex) };
+  }
+  if (q.type === "ms") {
+    const order = shuffledIndices(q.options.length);
+    return {
+      ...q,
+      options: order.map((i) => q.options[i]),
+      correctIndices: q.correctIndices.map((ci) => order.indexOf(ci)),
+    };
+  }
+  if (q.type === "tfm") {
+    return { ...q, statements: shuffledCopy(q.statements) };
+  }
+  if (q.type === "matching") {
+    return { ...q, pairs: shuffledCopy(q.pairs) };
+  }
+  return q;
+}
+
+function chapterStats(chapter, progress) {
+  let attempted = 0;
+  let correct = 0;
+  chapter.questions.forEach((q) => {
+    const p = progress[q.id];
+    if (p) {
+      attempted += 1;
+      if (p.last_correct) correct += 1;
+    }
+  });
+  return { attempted, correct, total: chapter.questions.length };
+}
+
+function masteryColor(stats) {
+  if (stats.attempted === 0) return "var(--grey)";
+  const ratio = stats.correct / stats.attempted;
+  if (stats.attempted < stats.total) return "var(--amber)";
+  if (ratio >= 0.8) return "var(--green)";
+  if (ratio >= 0.5) return "var(--amber)";
+  return "var(--red)";
+}
+
+// row from Supabase `questions` table -> app-shaped question object
+function rowToQuestion(row) {
+  const base = {
+    id: row.id,
+    type: row.type,
+    prompt: row.prompt,
+    explanation: row.explanation || "",
+  };
+  if (row.image) base.image = row.image;
+  if (row.source) base.source = row.source;
+  return { ...base, ...row.payload };
+}
+
+// ---- draft helpers ----
+function initDraft(q) {
+  if (q.type === "sc") return { selected: null };
+  if (q.type === "tf") return { selected: null };
+  if (q.type === "ms") return { selectedSet: [] };
+  if (q.type === "tfm") return { answers: q.statements.map(() => null) };
+  if (q.type === "matching") return { assign: q.pairs.map(() => null), pool: shuffledCopy(q.pairs.map((p) => p.right)) };
+  return {};
+}
+function isDraftComplete(q, draft) {
+  if (q.type === "sc" || q.type === "tf") return draft.selected !== null;
+  if (q.type === "ms") return draft.selectedSet.length > 0;
+  if (q.type === "tfm") return draft.answers.every((a) => a !== null);
+  if (q.type === "matching") return draft.assign.every((a) => a !== null);
+  return false;
+}
+function isDraftCorrect(q, draft) {
+  if (q.type === "sc") return draft.selected === q.correctIndex;
+  if (q.type === "tf") return draft.selected === q.correct;
+  if (q.type === "ms") {
+    const a = [...draft.selectedSet].sort().join(",");
+    const b = [...q.correctIndices].sort().join(",");
+    return a === b;
+  }
+  if (q.type === "tfm") return q.statements.every((s, i) => draft.answers[i] === s.correct);
+  if (q.type === "matching") return q.pairs.every((p, i) => draft.assign[i] === p.right);
+  return false;
+}
+
+// ---- per-type interactive renderers ----
+function ScQuestion({ q, draft, setDraft, revealed }) {
+  return (
+    <div className="fdv-options">
+      {q.options.map((opt, idx) => {
+        let cls = "fdv-option";
+        if (revealed) {
+          cls += " locked";
+          if (idx === q.correctIndex) cls += " correct-answer";
+          else if (idx === draft.selected) cls += " wrong-answer";
+        } else if (draft.selected === idx) cls += " picked";
+        return (
+          <button key={idx} className={cls} disabled={revealed} onClick={() => setDraft({ selected: idx })}>
+            <span className="fdv-option-light" />
+            <span>{opt}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function TfQuestion({ q, draft, setDraft, revealed }) {
+  const options = [{ label: "Wahr", value: true }, { label: "Falsch", value: false }];
+  return (
+    <div className="fdv-options fdv-options-row">
+      {options.map((opt) => {
+        let cls = "fdv-option fdv-option-tf";
+        if (revealed) {
+          cls += " locked";
+          if (opt.value === q.correct) cls += " correct-answer";
+          else if (opt.value === draft.selected) cls += " wrong-answer";
+        } else if (draft.selected === opt.value) cls += " picked";
+        return (
+          <button key={opt.label} className={cls} disabled={revealed} onClick={() => setDraft({ selected: opt.value })}>
+            <span className="fdv-option-light" />
+            <span>{opt.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function MsQuestion({ q, draft, setDraft, revealed }) {
+  function toggle(idx) {
+    if (revealed) return;
+    const set = draft.selectedSet.includes(idx) ? draft.selectedSet.filter((i) => i !== idx) : [...draft.selectedSet, idx];
+    setDraft({ selectedSet: set });
+  }
+  return (
+    <div className="fdv-options">
+      {q.options.map((opt, idx) => {
+        const picked = draft.selectedSet.includes(idx);
+        const shouldBeCorrect = q.correctIndices.includes(idx);
+        let cls = "fdv-option fdv-option-checkbox";
+        if (revealed) {
+          cls += " locked";
+          if (shouldBeCorrect) cls += " correct-answer";
+          else if (picked) cls += " wrong-answer";
+        } else if (picked) cls += " picked";
+        return (
+          <button key={idx} className={cls} disabled={revealed} onClick={() => toggle(idx)}>
+            <span className={"fdv-checkbox-box" + (picked ? " checked" : "")}>{picked ? "✓" : ""}</span>
+            <span>{opt}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function TfmQuestion({ q, draft, setDraft, revealed }) {
+  function setRow(i, val) {
+    if (revealed) return;
+    const answers = [...draft.answers];
+    answers[i] = val;
+    setDraft({ answers });
+  }
+  return (
+    <div className="fdv-tfm-table">
+      {q.statements.map((s, i) => (
+        <div className="fdv-tfm-row" key={i}>
+          <div className="fdv-tfm-text">{s.text}</div>
+          <div className="fdv-tfm-choices">
+            {[true, false].map((val) => {
+              let cls = "fdv-tfm-pill";
+              if (revealed) {
+                cls += " locked";
+                if (val === s.correct) cls += " correct-answer";
+                else if (draft.answers[i] === val) cls += " wrong-answer";
+              } else if (draft.answers[i] === val) cls += " picked";
+              return (
+                <button key={String(val)} className={cls} disabled={revealed} onClick={() => setRow(i, val)}>
+                  {val ? "Wahr" : "Falsch"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function MatchingQuestion({ q, draft, setDraft, revealed }) {
+  function setAssign(i, value) {
+    if (revealed) return;
+    const assign = [...draft.assign];
+    assign[i] = value || null;
+    setDraft({ ...draft, assign });
+  }
+  return (
+    <div className="fdv-matching">
+      {q.pairs.map((p, i) => {
+        const val = draft.assign[i];
+        const correct = revealed && val === p.right;
+        const wrong = revealed && val !== p.right;
+        return (
+          <div className="fdv-matching-row" key={i}>
+            <div className="fdv-matching-left">{p.left}</div>
+            <select
+              className={"fdv-matching-select" + (correct ? " correct-answer" : wrong ? " wrong-answer" : "")}
+              disabled={revealed}
+              value={val || ""}
+              onChange={(e) => setAssign(i, e.target.value)}
+            >
+              <option value="" disabled>wählen …</option>
+              {draft.pool.map((opt, oi) => (
+                <option key={oi} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {revealed && wrong && <div className="fdv-matching-solution">Richtig: {p.right}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function QuestionBody({ q, draft, setDraft, revealed }) {
+  if (q.type === "sc") return <ScQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "tf") return <TfQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "ms") return <MsQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "tfm") return <TfmQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "matching") return <MatchingQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  return null;
+}
+
+// ---- Forced password change screen (shown after first login with a temp password) ----
+function ForcePasswordChangeScreen({ onDone }) {
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (pw1.length < 6) {
+      setError("Das Passwort muss mindestens 6 Zeichen haben.");
+      return;
+    }
+    if (pw1 !== pw2) {
+      setError("Die beiden Passwörter stimmen nicht überein.");
+      return;
+    }
+    setBusy(true);
+    const { error: updErr } = await sb.auth.updateUser({
+      password: pw1,
+      data: { must_change_password: false },
+    });
+    setBusy(false);
+    if (updErr) {
+      setError("Fehler beim Setzen des Passworts: " + updErr.message);
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <div className="fdv-app">
+      <div className="fdv-login-wrap">
+        <h1 className="fdv-title">Neues Passwort setzen</h1>
+        <p className="fdv-sub">Aus Sicherheitsgründen musst du beim ersten Login ein eigenes Passwort vergeben.</p>
+        <form className="fdv-card fdv-login-card" onSubmit={submit}>
+          <label className="fdv-label">Neues Passwort</label>
+          <input className="fdv-input" type="password" required value={pw1} onChange={(e) => setPw1(e.target.value)} />
+          <label className="fdv-label">Neues Passwort wiederholen</label>
+          <input className="fdv-input" type="password" required value={pw2} onChange={(e) => setPw2(e.target.value)} />
+          {error && <div className="fdv-form-error">{error}</div>}
+          <button className="fdv-next-btn" type="submit" disabled={busy}>
+            {busy ? "Speichern …" : "Passwort setzen"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---- Admin screen: create a new user with a temporary password ----
+async function callUserAdmin(accessToken, body) {
+  const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-manage-users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Unbekannter Fehler.");
+  return data;
+}
+
+function UsersScreen({ accessToken, currentUserId, onCancel }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(null);
+  const [users, setUsers] = useState(null);
+  const [rowBusyId, setRowBusyId] = useState(null);
+  const [resetTarget, setResetTarget] = useState(null);
+  const [resetPw, setResetPw] = useState("");
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await callUserAdmin(accessToken, { action: "list" });
+      setUsers(data.users);
+    } catch (e) {
+      setError("Nutzerliste konnte nicht geladen werden: " + e.message);
+    }
+  }, [accessToken]);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess(null);
+    if (!email.trim() || password.length < 6) {
+      setError("Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen angeben.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Unbekannter Fehler beim Erstellen des Nutzers.");
+      } else {
+        setSuccess(data.user.email);
+        setEmail("");
+        setPassword("");
+        await loadUsers();
+      }
+    } catch (err) {
+      setError("Verbindungsfehler: " + err.message);
+    }
+    setBusy(false);
+  }
+
+  async function doAction(userId, action, extra) {
+    setRowBusyId(userId);
+    setError("");
+    try {
+      await callUserAdmin(accessToken, { action, user_id: userId, ...extra });
+      await loadUsers();
+      if (action === "reset_password") {
+        setResetTarget(null);
+        setResetPw("");
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setRowBusyId(null);
+  }
+
+  function confirmDelete(u) {
+    if (window.confirm("Konto " + u.email + " endgültig löschen? Das kann nicht rückgängig gemacht werden.")) {
+      doAction(u.id, "delete");
+    }
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neuer Nutzer</span>
+      <form onSubmit={submit}>
+        <label className="fdv-label">E-Mail</label>
+        <input className="fdv-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className="fdv-label">Temporäres Passwort</label>
+        <input className="fdv-input" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {error && <div className="fdv-form-error">{error}</div>}
+        {success && <div className="fdv-explanation"><strong>Erstellt.</strong> {success} kann sich jetzt mit dem temporären Passwort einloggen und muss danach sofort ein eigenes setzen.</div>}
+        <div className="fdv-form-actions">
+          <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
+          <button type="submit" className="fdv-result-btn primary" disabled={busy}>
+            {busy ? "Erstellen …" : "Nutzer erstellen"}
+          </button>
+        </div>
+      </form>
+
+      <div className="fdv-section-label" style={{ marginTop: 24 }}>Bestehende Nutzer</div>
+      {users === null && <p className="fdv-sub">Lädt …</p>}
+      {users && (
+        <div className="fdv-trash-list">
+          {users.map((u) => {
+            const banned = u.banned_until && new Date(u.banned_until) > new Date();
+            const isSelf = u.id === currentUserId;
+            return (
+              <div className="fdv-trash-item" key={u.id}>
+                <div className="fdv-trash-meta">
+                  {u.is_admin && <span className="fdv-type-tag">Admin</span>}
+                  {banned && <span className="fdv-type-tag" style={{ color: "var(--red)", borderColor: "var(--red)" }}>Gesperrt</span>}
+                  {u.must_change_password && <span className="fdv-type-tag">Passwort ausstehend</span>}
+                </div>
+                <div className="fdv-trash-prompt">{u.email || "(keine E-Mail)"}</div>
+                {resetTarget === u.id ? (
+                  <div className="fdv-form-row">
+                    <input
+                      className="fdv-input"
+                      type="text"
+                      placeholder="Neues temporäres Passwort"
+                      value={resetPw}
+                      onChange={(e) => setResetPw(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="fdv-result-btn primary"
+                      disabled={rowBusyId === u.id}
+                      onClick={() => doAction(u.id, "reset_password", { password: resetPw })}
+                    >
+                      Setzen
+                    </button>
+                    <button type="button" className="fdv-result-btn" onClick={() => { setResetTarget(null); setResetPw(""); }}>
+                      Abbrechen
+                    </button>
+                  </div>
+                ) : (
+                  <div className="fdv-form-actions">
+                    <button type="button" className="fdv-result-btn" disabled={rowBusyId === u.id} onClick={() => { setResetTarget(u.id); setResetPw(""); }}>
+                      Passwort zurücksetzen
+                    </button>
+                    {!isSelf && (
+                      <button
+                        type="button"
+                        className="fdv-result-btn"
+                        disabled={rowBusyId === u.id}
+                        onClick={() => doAction(u.id, banned ? "unban" : "ban")}
+                      >
+                        {banned ? "Entsperren" : "Sperren"}
+                      </button>
+                    )}
+                    {!isSelf && (
+                      <button type="button" className="fdv-result-btn warn" disabled={rowBusyId === u.id} onClick={() => confirmDelete(u)}>
+                        Löschen
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Anleitung (Kapitel ohne Fragen) ----
+function GuideDiagram() {
+  const box = (x, label, sub, fill) => (
+    <g>
+      <rect x={x} y="20" width="120" height="54" rx="12" fill={fill} stroke="#58585a" strokeWidth="1.5" />
+      <text x={x + 60} y="44" textAnchor="middle" fontSize="13" fontWeight="700" fill="#231f20">{label}</text>
+      <text x={x + 60} y="62" textAnchor="middle" fontSize="11" fill="#58585a">{sub}</text>
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 360 150" width="100%" role="img" aria-label="Schema der Doppeltraktion: geführte Lok 2 und führende Lok 1">
+      {box(20, "Lok 2", "geführt, unbesetzt", "#f6f7f7")}
+      {box(220, "Lok 1", "führend, besetzt", "#eaf7de")}
+      <line x1="140" y1="47" x2="220" y2="47" stroke="#231f20" strokeWidth="3" />
+      <text x="180" y="40" textAnchor="middle" fontSize="10" fill="#58585a">Kupplung</text>
+      <text x="180" y="66" textAnchor="middle" fontSize="10" fill="#58585a">HL/HB</text>
+      <line x1="80" y1="74" x2="80" y2="104" stroke="#58585a" strokeWidth="1" strokeDasharray="3 3" />
+      <line x1="280" y1="74" x2="280" y2="104" stroke="#58585a" strokeWidth="1" strokeDasharray="3 3" />
+      <text x="80" y="118" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZDS/ZMS</text>
+      <text x="80" y="133" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <text x="280" y="118" textAnchor="middle" fontSize="11" fill="#231f20">gleiche Betriebsart</text>
+      <text x="280" y="133" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <line x1="140" y1="90" x2="220" y2="90" stroke="#75c93b" strokeWidth="3" />
+      <text x="180" y="85" textAnchor="middle" fontSize="10" fill="#58585a">ZS + UIC-Kabel</text>
+    </svg>
+  );
+}
+
+function GuideScreen({ chapter }) {
+  const g = chapter.guide || {};
+  const [done, setDone] = useState({});
+  const phases = g.phases || [];
+  const total = phases.reduce((n, ph) => n + ph.steps.length, 0);
+  const doneCount = Object.keys(done).filter((k) => done[k]).length;
+  function toggle(key) { setDone((d) => ({ ...d, [key]: !d[key] })); }
+  return (
+    <div>
+      {g.intro && <div className="fdv-card"><p style={{ margin: 0, lineHeight: 1.55 }}>{g.intro}</p></div>}
+      <div className="fdv-card"><GuideDiagram /></div>
+      {(g.warnings || []).map((w, i) => (
+        <div key={i} className="fdv-offline-banner">{w}</div>
+      ))}
+      <p className="fdv-sub" style={{ margin: "12px 0 4px" }}>
+        Zum Üben kannst du die Schritte abhaken ({doneCount}/{total}). Die Häkchen werden nicht gespeichert.
+      </p>
+      {phases.map((ph, pi) => (
+        <div key={pi} className="fdv-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <strong>{ph.title}</strong>
+            {ph.who && <span className="fdv-type-tag">{ph.who}</span>}
+          </div>
+          {ph.lead && <p className="fdv-sub" style={{ margin: "6px 0 8px" }}>{ph.lead}</p>}
+          {ph.steps.map((st, si) => {
+            const key = pi + "-" + si;
+            const on = !!done[key];
+            return (
+              <div key={si} style={{ marginTop: 6 }}>
+                <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", lineHeight: 1.45, opacity: on ? 0.55 : 1 }}>
+                  <input type="checkbox" checked={on} onChange={() => toggle(key)} style={{ marginTop: 3, width: 18, height: 18, accentColor: "#75c93b", flex: "0 0 auto" }} />
+                  <span>
+                    <span style={{ textDecoration: on ? "line-through" : "none" }}>{st.text}</span>
+                    {st.ref && <span className="fdv-sub" style={{ marginLeft: 6, fontSize: 12 }}>[{st.ref}]</span>}
+                  </span>
+                </label>
+                {st.important && <div className="fdv-offline-banner" style={{ margin: "6px 0 0 28px" }}>{st.important}</div>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      {g.notes && (
+        <>
+          <div className="fdv-section-label">{g.notes_title || "Hinweise"}</div>
+          {g.notes.map((n, i) => (
+            <div key={i} className="fdv-card">
+              <strong>{n.title}</strong>
+              <p style={{ margin: "4px 0 0", lineHeight: 1.5 }}>{n.text}</p>
+            </div>
+          ))}
+        </>
+      )}
+      {g.source && <p className="fdv-sub" style={{ marginTop: 12 }}>Quelle: {g.source}</p>}
+    </div>
+  );
+}
+
+// ---- Info / Haftungsausschluss ----
+function InfoScreen({ onBack }) {
+  return (
+    <div className="fdv-app">
+      <div className="fdv-quiz-top">
+        <button className="fdv-back-btn" onClick={onBack}>Zurück</button>
+        <span className="fdv-quiz-title">Info</span>
+      </div>
+      <div className="fdv-card" style={{ lineHeight: 1.6 }}>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>Hinweis zur Nutzung der Übungs-App LokWerk300</h2>
+        <p><strong>Haftungsausschluss:</strong><br />Es gelten jederzeit die offiziellen und aktuellen Dokumente.</p>
+        <p>Sollten Fehler auffallen, können diese unter <a href="mailto:lokwerk300@gmail.com">lokwerk300@gmail.com</a> gemeldet werden.</p>
+        <p>Besten Dank!</p>
+        <p style={{ marginBottom: 0 }}>Freundliche Grüsse,<br />Alain</p>
+      </div>
+    </div>
+  );
+}
+
+// ---- Login screen ----
+function LoginScreen({ onLoggedIn, onShowInfo }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) {
+      setError("Login fehlgeschlagen. E-Mail/Passwort prüfen.");
+      return;
+    }
+    onLoggedIn(data.session);
+  }
+
+  return (
+    <div className="fdv-app">
+      <div className="fdv-login-wrap">
+        <h1 className="fdv-title">LokWerk300</h1>
+        <p className="fdv-sub">Melde dich mit deinem Zugang an.</p>
+        <form className="fdv-card fdv-login-card" onSubmit={submit}>
+          <label className="fdv-label">E-Mail</label>
+          <input className="fdv-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label className="fdv-label">Passwort</label>
+          <input className="fdv-input" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          {error && <div className="fdv-form-error">{error}</div>}
+          <button className="fdv-next-btn" type="submit" disabled={busy}>
+            {busy ? "Einloggen …" : "Einloggen"}
+          </button>
+        </form>
+        <p className="fdv-sub" style={{ marginTop: 16 }}>
+          Noch keinen Zugang? Frag die Person, die diese App verwaltet, um ein Konto.
+        </p>
+        <p className="fdv-sub"><button className="fdv-link-btn" type="button" onClick={onShowInfo}>Info &amp; Haftungsausschluss</button></p>
+      </div>
+    </div>
+  );
+}
+
+// ---- Add-question form ----
+function emptyFormForType(type) {
+  if (type === "sc") return { options: ["", "", "", ""], correctIndex: 0 };
+  if (type === "ms") return { options: ["", "", "", ""], correctFlags: [false, false, false, false] };
+  if (type === "tf") return { correct: true };
+  if (type === "tfm") return { statements: [{ text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }] };
+  if (type === "matching") return { pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] };
+  return {};
+}
+
+function padTo(arr, n, filler) {
+  const a = [...arr];
+  while (a.length < n) a.push(filler());
+  return a;
+}
+
+// Build form state from an existing question (used when editing).
+function formFromQuestion(q) {
+  if (q.type === "sc") return { options: padTo(q.options, 4, () => ""), correctIndex: q.correctIndex };
+  if (q.type === "ms") {
+    const options = padTo(q.options, 4, () => "");
+    return { options, correctFlags: options.map((_, i) => q.correctIndices.includes(i)) };
+  }
+  if (q.type === "tf") return { correct: q.correct };
+  if (q.type === "tfm") return { statements: padTo(q.statements.map((s) => ({ ...s })), 4, () => ({ text: "", correct: true })) };
+  if (q.type === "matching") return { pairs: padTo(q.pairs.map((p) => ({ ...p })), 4, () => ({ left: "", right: "" })) };
+  return emptyFormForType(q.type);
+}
+
+function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
+  const [chapterCode, setChapterCode] = useState(editing ? editing.chapterCode : (chapters[0]?.code || ""));
+  const [type, setType] = useState(editing ? editing.question.type : "sc");
+  const [prompt, setPrompt] = useState(editing ? editing.question.prompt : "");
+  const [image, setImage] = useState(editing ? (editing.question.image || "") : "");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  async function uploadImage(file) {
+    if (!file) return;
+    setUploadError("");
+    setUploadingImage(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext;
+      const { error: upErr } = await sb.storage.from("bilder").upload(path, file, { upsert: false });
+      if (upErr) {
+        setUploadError("Hochladen fehlgeschlagen: " + upErr.message);
+        setUploadingImage(false);
+        return;
+      }
+      const { data } = sb.storage.from("bilder").getPublicUrl(path);
+      setImage(data.publicUrl);
+    } catch (e) {
+      setUploadError("Hochladen fehlgeschlagen: " + e.message);
+    }
+    setUploadingImage(false);
+  }
+  const [explanation, setExplanation] = useState(editing ? (editing.question.explanation || "") : "");
+  const [source, setSource] = useState(editing ? (editing.question.source || "") : "");
+  const [form, setForm] = useState(editing ? formFromQuestion(editing.question) : emptyFormForType("sc"));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function changeType(t) {
+    setType(t);
+    setForm(emptyFormForType(t));
+  }
+
+  function buildPayload() {
+    if (type === "sc") {
+      const kept = form.options.map((o, i) => ({ o, i })).filter((x) => x.o.trim() !== "");
+      return { options: kept.map((x) => x.o), correctIndex: kept.findIndex((x) => x.i === form.correctIndex) };
+    }
+    if (type === "ms") {
+      const kept = form.options.map((o, i) => ({ o, i })).filter((x) => x.o.trim() !== "");
+      const correctIndices = kept.map((x, k) => (form.correctFlags[x.i] ? k : -1)).filter((k) => k >= 0);
+      return { options: kept.map((x) => x.o), correctIndices };
+    }
+    if (type === "tf") {
+      return { correct: form.correct };
+    }
+    if (type === "tfm") {
+      return { statements: form.statements.filter((s) => s.text.trim() !== "") };
+    }
+    if (type === "matching") {
+      return { pairs: form.pairs.filter((p) => p.left.trim() !== "" && p.right.trim() !== "") };
+    }
+    return {};
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (!chapterCode || !prompt.trim()) {
+      setError("Bitte Kapitel und Frage ausfüllen.");
+      return;
+    }
+    const payload = buildPayload();
+    if (type === "sc" && (payload.options.length < 2 || payload.correctIndex < 0)) {
+      setError("Bitte mindestens 2 Antwortoptionen ausfüllen und eine davon als richtig markieren.");
+      return;
+    }
+    if (type === "ms" && (payload.options.length < 2 || payload.correctIndices.length < 1)) {
+      setError("Bitte mindestens 2 Antwortoptionen ausfüllen und mindestens eine als richtig ankreuzen.");
+      return;
+    }
+    if (type === "tfm" && payload.statements.length < 1) {
+      setError("Bitte mindestens eine Teilaussage ausfüllen.");
+      return;
+    }
+    if (type === "matching" && payload.pairs.length < 2) {
+      setError("Bitte mindestens zwei vollständige Paare ausfüllen.");
+      return;
+    }
+    setSaving(true);
+    const fields = {
+      chapter_code: chapterCode,
+      type,
+      prompt: prompt.trim(),
+      image: image.trim() || null,
+      explanation: explanation.trim(),
+      source: source.trim() || null,
+      payload,
+    };
+    if (editing) {
+      const { data, error } = await sb.from("questions").update(fields).eq("id", editing.question.id).select();
+      setSaving(false);
+      if (error) {
+        setError("Speichern fehlgeschlagen: " + error.message);
+        return;
+      }
+      if (!data || data.length === 0) {
+        setError("Die Änderung wurde nicht gespeichert (fehlende Berechtigung?).");
+        return;
+      }
+      onDone();
+      return;
+    }
+    const { error } = await sb.from("questions").insert({ ...fields, created_by: userId });
+    setSaving(false);
+    if (error) {
+      setError("Speichern fehlgeschlagen: " + error.message);
+      return;
+    }
+    onDone();
+  }
+
+  async function remove() {
+    if (!editing) return;
+    if (!window.confirm("Diese Frage in den Papierkorb verschieben?\n\nSie erscheint dann nicht mehr im Training, kann aber im Papierkorb wiederhergestellt werden.")) return;
+    setError("");
+    setSaving(true);
+    const { data, error } = await sb.from("questions").update({ deleted_at: new Date().toISOString() }).eq("id", editing.question.id).select();
+    setSaving(false);
+    if (error) {
+      setError("Löschen fehlgeschlagen: " + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      setError("Die Frage wurde nicht gelöscht (fehlende Berechtigung?).");
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">{editing ? "Frage bearbeiten" : "Neue Frage"}</span>
+      <form onSubmit={submit}>
+        <label className="fdv-label">Kapitel</label>
+        <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
+          {chapters.filter((c) => c.kind !== "guide").map((c) => (
+            <option key={c.code} value={c.code}>{c.code} – {c.title}</option>
+          ))}
+        </select>
+
+        <label className="fdv-label">Fragetyp</label>
+        <select className="fdv-input" value={type} onChange={(e) => changeType(e.target.value)}>
+          <option value="sc">Single Choice</option>
+          <option value="ms">Multiple Select</option>
+          <option value="tf">Wahr / Falsch</option>
+          <option value="tfm">Wahr/Falsch-Matrix</option>
+          <option value="matching">Zuordnung</option>
+        </select>
+
+        <label className="fdv-label">{type === "tf" ? "Aussage" : "Frage"}</label>
+        <textarea className="fdv-input" rows={2} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+
+        <label className="fdv-label">Bild (optional)</label>
+        <div className="fdv-form-row">
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploadingImage}
+            onChange={(e) => uploadImage(e.target.files && e.target.files[0])}
+          />
+          {uploadingImage && <span className="fdv-sub" style={{ margin: 0 }}>Lädt hoch …</span>}
+        </div>
+        {uploadError && <div className="fdv-form-error">{uploadError}</div>}
+        {image && (
+          <div className="fdv-image-preview-row">
+            <img src={image} alt="" className="fdv-image-preview" />
+            <button type="button" className="fdv-link-btn" onClick={() => setImage("")}>Bild entfernen</button>
+          </div>
+        )}
+        <input
+          className="fdv-input"
+          type="text"
+          placeholder="…oder Bild-URL einfügen"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          style={{ marginTop: 8 }}
+        />
+
+        {type === "sc" && (
+          <>
+            <label className="fdv-label">Antwortoptionen (richtige markieren)</label>
+            {form.options.map((opt, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  type="radio"
+                  name="sc-correct"
+                  checked={form.correctIndex === i}
+                  onChange={() => setForm({ ...form, correctIndex: i })}
+                />
+                <input
+                  className="fdv-input"
+                  value={opt}
+                  placeholder={`Option ${i + 1}`}
+                  onChange={(e) => {
+                    const options = [...form.options];
+                    options[i] = e.target.value;
+                    setForm({ ...form, options });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "ms" && (
+          <>
+            <label className="fdv-label">Antwortoptionen (alle richtigen ankreuzen)</label>
+            {form.options.map((opt, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  type="checkbox"
+                  checked={form.correctFlags[i]}
+                  onChange={(e) => {
+                    const correctFlags = [...form.correctFlags];
+                    correctFlags[i] = e.target.checked;
+                    setForm({ ...form, correctFlags });
+                  }}
+                />
+                <input
+                  className="fdv-input"
+                  value={opt}
+                  placeholder={`Option ${i + 1}`}
+                  onChange={(e) => {
+                    const options = [...form.options];
+                    options[i] = e.target.value;
+                    setForm({ ...form, options });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "tf" && (
+          <>
+            <label className="fdv-label">Richtige Antwort</label>
+            <div className="fdv-form-row">
+              <label><input type="radio" name="tf" checked={form.correct === true} onChange={() => setForm({ correct: true })} /> Wahr</label>
+              <label><input type="radio" name="tf" checked={form.correct === false} onChange={() => setForm({ correct: false })} /> Falsch</label>
+            </div>
+          </>
+        )}
+
+        {type === "tfm" && (
+          <>
+            <label className="fdv-label">Teilaussagen</label>
+            {form.statements.map((s, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  className="fdv-input"
+                  value={s.text}
+                  placeholder={`Aussage ${i + 1}`}
+                  onChange={(e) => {
+                    const statements = [...form.statements];
+                    statements[i] = { ...statements[i], text: e.target.value };
+                    setForm({ ...form, statements });
+                  }}
+                />
+                <select
+                  className="fdv-input fdv-input-narrow"
+                  value={s.correct ? "wahr" : "falsch"}
+                  onChange={(e) => {
+                    const statements = [...form.statements];
+                    statements[i] = { ...statements[i], correct: e.target.value === "wahr" };
+                    setForm({ ...form, statements });
+                  }}
+                >
+                  <option value="wahr">Wahr</option>
+                  <option value="falsch">Falsch</option>
+                </select>
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "matching" && (
+          <>
+            <label className="fdv-label">Paare (links → rechts)</label>
+            {form.pairs.map((p, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  className="fdv-input"
+                  value={p.left}
+                  placeholder={`Links ${i + 1}`}
+                  onChange={(e) => {
+                    const pairs = [...form.pairs];
+                    pairs[i] = { ...pairs[i], left: e.target.value };
+                    setForm({ ...form, pairs });
+                  }}
+                />
+                <input
+                  className="fdv-input"
+                  value={p.right}
+                  placeholder={`Rechts ${i + 1}`}
+                  onChange={(e) => {
+                    const pairs = [...form.pairs];
+                    pairs[i] = { ...pairs[i], right: e.target.value };
+                    setForm({ ...form, pairs });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        <label className="fdv-label">Erklärung (optional)</label>
+        <textarea className="fdv-input" rows={2} value={explanation} onChange={(e) => setExplanation(e.target.value)} />
+
+        <label className="fdv-label">Quelle / Stand (optional)</label>
+        <input
+          className="fdv-input"
+          type="text"
+          placeholder="z.B. 300.5 Ziff. 3.4, gültig ab 14.12.2025"
+          value={source}
+          onChange={(e) => setSource(e.target.value)}
+        />
+
+        {error && <div className="fdv-form-error">{error}</div>}
+
+        <div className="fdv-form-actions">
+          <button type="button" className="fdv-result-btn" onClick={onCancel}>Abbrechen</button>
+          <button type="submit" className="fdv-result-btn primary" disabled={saving}>
+            {saving ? "Speichern …" : (editing ? "Änderungen speichern" : "Frage speichern")}
+          </button>
+        </div>
+        {editing && (
+          <button type="button" className="fdv-result-btn warn fdv-delete-btn" disabled={saving} onClick={remove}>
+            In Papierkorb verschieben
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+
+// ---- Admin screen: trash / restore soft-deleted questions ----
+function TrashScreen({ onCancel, onRestored }) {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  const load = useCallback(async () => {
+    const { data, error } = await sb
+      .from("questions")
+      .select("*")
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) setError("Laden fehlgeschlagen: " + error.message);
+    setItems(data || []);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function restore(id) {
+    setBusyId(id);
+    const { error } = await sb.from("questions").update({ deleted_at: null }).eq("id", id);
+    setBusyId(null);
+    if (error) { setError("Wiederherstellen fehlgeschlagen: " + error.message); return; }
+    await load();
+    onRestored();
+  }
+
+  async function purge(id) {
+    if (!window.confirm("Endgültig löschen? Das kann nicht mehr rückgängig gemacht werden.")) return;
+    setBusyId(id);
+    const { error } = await sb.from("questions").delete().eq("id", id);
+    setBusyId(null);
+    if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
+    await load();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Papierkorb</span>
+      {error && <div className="fdv-form-error">{error}</div>}
+      {items === null && <p className="fdv-sub">Lädt …</p>}
+      {items && items.length === 0 && <p className="fdv-sub">Der Papierkorb ist leer.</p>}
+      {items && items.length > 0 && (
+        <div className="fdv-trash-list">
+          {items.map((row) => (
+            <div className="fdv-trash-item" key={row.id}>
+              <div className="fdv-trash-meta">
+                <span className="fdv-type-tag">{TYPE_LABEL[row.type] || row.type}</span>
+                <span className="fdv-trash-chapter">{row.chapter_code}</span>
+              </div>
+              <div className="fdv-trash-prompt">{row.prompt}</div>
+              <div className="fdv-form-actions">
+                <button type="button" className="fdv-result-btn" disabled={busyId === row.id} onClick={() => purge(row.id)}>
+                  Endgültig löschen
+                </button>
+                <button type="button" className="fdv-result-btn primary" disabled={busyId === row.id} onClick={() => restore(row.id)}>
+                  Wiederherstellen
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
+// ---- Admin screen: reported questions ----
+function ReportsScreen({ onCancel, onEdit }) {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  const load = useCallback(async () => {
+    const { data, error } = await sb
+      .from("question_reports")
+      .select("*, questions(id, prompt, chapter_code, type)")
+      .eq("resolved", false)
+      .order("created_at", { ascending: false });
+    if (error) setError("Laden fehlgeschlagen: " + error.message);
+    setItems(data || []);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function resolve(id) {
+    setBusyId(id);
+    const { error } = await sb.from("question_reports").update({ resolved: true }).eq("id", id);
+    setBusyId(null);
+    if (error) { setError("Konnte nicht als erledigt markiert werden: " + error.message); return; }
+    await load();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Gemeldete Fragen</span>
+      {error && <div className="fdv-form-error">{error}</div>}
+      {items === null && <p className="fdv-sub">Lädt …</p>}
+      {items && items.length === 0 && <p className="fdv-sub">Keine offenen Meldungen.</p>}
+      {items && items.length > 0 && (
+        <div className="fdv-trash-list">
+          {items.map((r) => (
+            <div className="fdv-trash-item" key={r.id}>
+              <div className="fdv-trash-meta">
+                {r.questions && <span className="fdv-type-tag">{TYPE_LABEL[r.questions.type] || r.questions.type}</span>}
+                {r.questions && <span className="fdv-trash-chapter">{r.questions.chapter_code}</span>}
+              </div>
+              <div className="fdv-trash-prompt">{r.questions ? r.questions.prompt : "(Frage wurde inzwischen gelöscht)"}</div>
+              {r.note && <div className="fdv-explanation" style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}><strong>Hinweis:</strong> {r.note}</div>}
+              <div className="fdv-form-actions">
+                <button type="button" className="fdv-result-btn" disabled={busyId === r.id} onClick={() => resolve(r.id)}>
+                  Erledigt
+                </button>
+                {r.questions && (
+                  <button type="button" className="fdv-result-btn primary" disabled={busyId === r.id} onClick={() => onEdit(r.questions.id)}>
+                    Frage bearbeiten
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
+// ---- Admin screen: bulk import questions from an Excel file ----
+function cellStr(row, i) {
+  const v = row[i];
+  return v === undefined || v === null ? "" : String(v).trim();
+}
+function isTrueCell(v) {
+  const s = String(v || "").trim().toLowerCase();
+  return s === "wahr" || s === "true" || s === "ja" || s === "j" || s === "1";
+}
+
+function parseWorkbookToRows(workbook, validChapterCodes) {
+  const rows = [];
+  const warnings = [];
+
+  function sheetRows(name) {
+    const sheet = workbook.Sheets[name];
+    if (!sheet) return [];
+    return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }).slice(1);
+  }
+
+  function checkChapter(code, sheetName, rowNum) {
+    if (!code) return false;
+    if (!validChapterCodes.has(code)) {
+      warnings.push(`${sheetName} Zeile ${rowNum + 2}: Kapitel "${code}" existiert nicht – Zeile wird übersprungen.`);
+      return false;
+    }
+    return true;
+  }
+
+  sheetRows("SC").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "SC", i)) return;
+    const image = cellStr(r, 2);
+    const correct = cellStr(r, 3), w1 = cellStr(r, 4), w2 = cellStr(r, 5), w3 = cellStr(r, 6);
+    const explanation = cellStr(r, 7);
+    const source = cellStr(r, 8);
+    if (!prompt || !correct) { warnings.push(`SC Zeile ${i + 2}: Frage oder richtige Antwort fehlt – übersprungen.`); return; }
+    const options = [correct, w1, w2, w3].filter((o) => o !== "");
+    rows.push({
+      chapter_code, type: "sc", prompt,
+      image: image.startsWith("http") ? image : null,
+      explanation, source: source || null,
+      payload: { options, correctIndex: 0 },
+    });
+  });
+
+  sheetRows("MS").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "MS", i)) return;
+    const image = cellStr(r, 2);
+    const options = [], correctIndices = [];
+    for (let k = 0; k < 4; k++) {
+      const opt = cellStr(r, 3 + k * 2);
+      if (!opt) continue;
+      if (isTrueCell(r[4 + k * 2])) correctIndices.push(options.length);
+      options.push(opt);
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || options.length < 2 || correctIndices.length < 1) { warnings.push(`MS Zeile ${i + 2}: zu wenige Optionen oder keine richtige markiert – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "ms", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { options, correctIndices } });
+  });
+
+  sheetRows("TF").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "TF", i)) return;
+    const image = cellStr(r, 2);
+    const answer = r[3];
+    const explanation = cellStr(r, 4);
+    const source = cellStr(r, 5);
+    if (!prompt) { warnings.push(`TF Zeile ${i + 2}: Aussage fehlt – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "tf", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { correct: isTrueCell(answer) } });
+  });
+
+  sheetRows("TFM").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "TFM", i)) return;
+    const image = cellStr(r, 2);
+    const statements = [];
+    for (let k = 0; k < 4; k++) {
+      const text = cellStr(r, 3 + k * 2);
+      if (!text) continue;
+      statements.push({ text, correct: isTrueCell(r[4 + k * 2]) });
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || statements.length < 1) { warnings.push(`TFM Zeile ${i + 2}: keine Teilaussagen – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "tfm", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { statements } });
+  });
+
+  sheetRows("Matching").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "Matching", i)) return;
+    const image = cellStr(r, 2);
+    const pairs = [];
+    for (let k = 0; k < 4; k++) {
+      const left = cellStr(r, 3 + k * 2), right = cellStr(r, 4 + k * 2);
+      if (!left || !right) continue;
+      pairs.push({ left, right });
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || pairs.length < 2) { warnings.push(`Matching Zeile ${i + 2}: zu wenige vollständige Paare – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "matching", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { pairs } });
+  });
+
+  return { rows, warnings };
+}
+
+function ImportScreen({ chapters, onCancel, onDone }) {
+  const [parsed, setParsed] = useState(null);
+  const [warnings, setWarnings] = useState([]);
+  const [error, setError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [resultMsg, setResultMsg] = useState("");
+
+  function handleFile(file) {
+    if (!file) return;
+    setError("");
+    setParsed(null);
+    setResultMsg("");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const validCodes = new Set(chapters.filter((c) => c.kind !== "guide").map((c) => c.code));
+        const { rows, warnings } = parseWorkbookToRows(workbook, validCodes);
+        setParsed(rows);
+        setWarnings(warnings);
+      } catch (err) {
+        setError("Datei konnte nicht gelesen werden: " + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function doImport() {
+    if (!parsed || parsed.length === 0) return;
+    setImporting(true);
+    setError("");
+    const { error } = await sb.from("questions").insert(parsed);
+    setImporting(false);
+    if (error) {
+      setError("Import fehlgeschlagen: " + error.message);
+      return;
+    }
+    setResultMsg(parsed.length + " Fragen erfolgreich importiert.");
+    setParsed(null);
+    onDone();
+  }
+
+  const counts = parsed ? parsed.reduce((acc, r) => ((acc[r.type] = (acc[r.type] || 0) + 1), acc), {}) : null;
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Excel-Import</span>
+      <p className="fdv-sub">
+        Datei mit den Tabellenblättern SC, MS, TF, TFM, Matching hochladen (gleicher Aufbau wie die bisherige Vorlage: Kapitel, Frage, Bild, Antworten, Erklärung, optional Quelle).
+      </p>
+      <input type="file" accept=".xlsx,.xls" onChange={(e) => handleFile(e.target.files && e.target.files[0])} />
+
+      {error && <div className="fdv-form-error">{error}</div>}
+      {resultMsg && <div className="fdv-explanation"><strong>Fertig.</strong> {resultMsg}</div>}
+
+      {warnings.length > 0 && (
+        <div className="fdv-form-error" style={{ marginTop: 12 }}>
+          {warnings.length} Zeile(n) übersprungen:
+          <ul style={{ margin: "6px 0 0 18px", padding: 0 }}>
+            {warnings.slice(0, 20).map((w, i) => <li key={i}>{w}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {parsed && (
+        <div className="fdv-explanation">
+          <strong>{parsed.length} Fragen bereit zum Import:</strong>{" "}
+          {Object.entries(counts).map(([t, n]) => `${TYPE_LABEL[t] || t}: ${n}`).join(", ") || "keine"}
+        </div>
+      )}
+
+      <div className="fdv-form-actions">
+        <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
+        <button type="button" className="fdv-result-btn primary" disabled={!parsed || parsed.length === 0 || importing} onClick={doImport}>
+          {importing ? "Importiere …" : "Import starten"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Admin screen: manage chapters (create, rename, reorder, delete) ----
+function ChaptersScreen({ onCancel, onChanged }) {
+  const [rows, setRows] = useState(null);
+  const [counts, setCounts] = useState({});
+  const [error, setError] = useState("");
+  const [busyCode, setBusyCode] = useState(null);
+  const [edits, setEdits] = useState({}); // code -> { title, sort_order }
+  const [newCode, setNewCode] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const load = useCallback(async () => {
+    setError("");
+    const { data: chapterRows, error: chErr } = await sb.from("chapters").select("*").order("sort_order").order("code");
+    if (chErr) { setError("Laden fehlgeschlagen: " + chErr.message); return; }
+    const { data: qRows, error: qErr } = await sb.from("questions").select("chapter_code");
+    if (qErr) { setError("Laden fehlgeschlagen: " + qErr.message); return; }
+    const c = {};
+    (qRows || []).forEach((r) => { c[r.chapter_code] = (c[r.chapter_code] || 0) + 1; });
+    setCounts(c);
+    setRows(chapterRows || []);
+    const nextEdits = {};
+    (chapterRows || []).forEach((ch) => { nextEdits[ch.code] = { title: ch.title, sort_order: ch.sort_order }; });
+    setEdits(nextEdits);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  function setEdit(code, field, value) {
+    setEdits((e) => ({ ...e, [code]: { ...e[code], [field]: value } }));
+  }
+
+  async function saveRow(ch) {
+    const edit = edits[ch.code];
+    if (!edit || !edit.title || !edit.title.trim()) {
+      setError("Der Titel darf nicht leer sein.");
+      return;
+    }
+    setBusyCode(ch.code);
+    setError("");
+    const { error } = await sb
+      .from("chapters")
+      .update({ title: edit.title.trim(), sort_order: Number(edit.sort_order) || 0 })
+      .eq("code", ch.code);
+    setBusyCode(null);
+    if (error) { setError("Speichern fehlgeschlagen: " + error.message); return; }
+    await load();
+    onChanged();
+  }
+
+  async function removeChapter(ch) {
+    const n = counts[ch.code] || 0;
+    if (n > 0) {
+      window.alert(
+        "Dieses Kapitel hat noch " + n + " Frage(n) (inkl. Papierkorb) und kann deshalb nicht gelöscht werden.\n\n" +
+        "Verschiebe oder lösche zuerst alle zugehörigen Fragen."
+      );
+      return;
+    }
+    if (!window.confirm('Kapitel "' + ch.title + '" (' + ch.code + ") wirklich löschen?")) return;
+    setBusyCode(ch.code);
+    setError("");
+    const { error } = await sb.from("chapters").delete().eq("code", ch.code);
+    setBusyCode(null);
+    if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
+    await load();
+    onChanged();
+  }
+
+  async function createChapter(e) {
+    e.preventDefault();
+    setError("");
+    const code = newCode.trim();
+    const title = newTitle.trim();
+    if (!code || !title) {
+      setError("Bitte Code und Titel für das neue Kapitel angeben.");
+      return;
+    }
+    setCreating(true);
+    const maxSort = rows && rows.length > 0 ? Math.max(...rows.map((r) => r.sort_order || 0)) : 0;
+    const { error } = await sb.from("chapters").insert({ code, title, sort_order: maxSort + 10 });
+    setCreating(false);
+    if (error) {
+      setError("Anlegen fehlgeschlagen: " + error.message);
+      return;
+    }
+    setNewCode("");
+    setNewTitle("");
+    await load();
+    onChanged();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neues Kapitel</span>
+      <form onSubmit={createChapter}>
+        <label className="fdv-label">Code (intern, eindeutig, z.B. 300.15 oder RLC2)</label>
+        <input className="fdv-input" type="text" value={newCode} onChange={(e) => setNewCode(e.target.value)} />
+        <label className="fdv-label">Titel (angezeigter Name)</label>
+        <input className="fdv-input" type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+        <div className="fdv-form-actions">
+          <button type="submit" className="fdv-result-btn primary" disabled={creating}>
+            {creating ? "Anlegen …" : "Kapitel anlegen"}
+          </button>
+        </div>
+      </form>
+
+      {error && <div className="fdv-form-error">{error}</div>}
+
+      <div className="fdv-section-label" style={{ marginTop: 24 }}>Bestehende Kapitel</div>
+      {rows === null && <p className="fdv-sub">Lädt …</p>}
+      {rows && (
+        <div className="fdv-trash-list">
+          {rows.map((ch) => {
+            const edit = edits[ch.code] || { title: ch.title, sort_order: ch.sort_order };
+            const n = counts[ch.code] || 0;
+            return (
+              <div className="fdv-trash-item" key={ch.code}>
+                <div className="fdv-trash-meta">
+                  <span className="fdv-trash-chapter">{ch.code}</span>
+                  <span className="fdv-sub" style={{ margin: 0 }}>{n} Frage(n)</span>
+                </div>
+                <label className="fdv-label">Titel</label>
+                <input
+                  className="fdv-input"
+                  type="text"
+                  value={edit.title}
+                  onChange={(e) => setEdit(ch.code, "title", e.target.value)}
+                />
+                <label className="fdv-label">Reihenfolge (kleinere Zahl = weiter oben)</label>
+                <input
+                  className="fdv-input fdv-input-narrow"
+                  type="number"
+                  value={edit.sort_order}
+                  onChange={(e) => setEdit(ch.code, "sort_order", e.target.value)}
+                />
+                <div className="fdv-form-actions">
+                  <button type="button" className="fdv-result-btn warn" disabled={busyCode === ch.code} onClick={() => removeChapter(ch)}>
+                    Löschen
+                  </button>
+                  <button type="button" className="fdv-result-btn primary" disabled={busyCode === ch.code} onClick={() => saveRow(ch)}>
+                    Speichern
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
+// ---- Admin screen: team overview across all users ----
+function TeamScreen({ accessToken, chapters, onCancel }) {
+  const [userStats, setUserStats] = useState(null);
+  const [chapterStatsTeam, setChapterStatsTeam] = useState(null);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+    setUserStats(null);
+    setChapterStatsTeam(null);
+    try {
+      const [usersRes, progressRes] = await Promise.all([
+        callUserAdmin(accessToken, { action: "list" }),
+        sb.from("progress").select("*"),
+      ]);
+      if (progressRes.error) throw new Error(progressRes.error.message);
+      const progressRows = progressRes.data || [];
+
+      // question_id -> chapter_code lookup, from the already-loaded chapters.
+      const qToChapter = {};
+      chapters.forEach((c) => c.questions.forEach((q) => { qToChapter[q.id] = c.code; }));
+
+      // Per user.
+      const byUser = {};
+      (usersRes.users || []).forEach((u) => {
+        byUser[u.id] = { email: u.email || "(keine E-Mail)", attempted: 0, correct: 0, lastActive: null };
+      });
+      // Per chapter, team-wide.
+      const byChapter = {};
+      chapters.forEach((c) => { byChapter[c.code] = { title: c.title, attempted: 0, correct: 0 }; });
+
+      progressRows.forEach((p) => {
+        if (byUser[p.user_id]) {
+          byUser[p.user_id].attempted += 1;
+          if (p.last_correct) byUser[p.user_id].correct += 1;
+          if (!byUser[p.user_id].lastActive || p.updated_at > byUser[p.user_id].lastActive) {
+            byUser[p.user_id].lastActive = p.updated_at;
+          }
+        }
+        const code = qToChapter[p.question_id];
+        if (code && byChapter[code]) {
+          byChapter[code].attempted += 1;
+          if (p.last_correct) byChapter[code].correct += 1;
+        }
+      });
+
+      const userList = Object.values(byUser).sort((a, b) => b.attempted - a.attempted);
+      const chapterList = Object.entries(byChapter)
+        .map(([code, s]) => ({ code, ...s, pct: s.attempted > 0 ? Math.round((s.correct / s.attempted) * 100) : null }))
+        .filter((c) => c.attempted > 0)
+        .sort((a, b) => a.pct - b.pct);
+
+      setUserStats(userList);
+      setChapterStatsTeam(chapterList);
+    } catch (e) {
+      setError("Laden fehlgeschlagen: " + e.message);
+    }
+  }, [accessToken, chapters]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Team-Übersicht</span>
+      {error && <div className="fdv-form-error">{error}</div>}
+      {userStats === null && !error && <p className="fdv-sub">Lädt …</p>}
+
+      {chapterStatsTeam && chapterStatsTeam.length > 0 && (
+        <>
+          <div className="fdv-section-label">Schwächste Kapitel (Team)</div>
+          <div className="fdv-trash-list">
+            {chapterStatsTeam.map((c) => (
+              <div className="fdv-trash-item" key={c.code}>
+                <div className="fdv-trash-meta">
+                  <span className="fdv-trash-chapter">{c.code}</span>
+                  <span
+                    className="fdv-type-tag"
+                    style={{
+                      color: c.pct >= 80 ? "var(--green)" : c.pct >= 50 ? "var(--amber)" : "var(--red)",
+                      borderColor: c.pct >= 80 ? "var(--green)" : c.pct >= 50 ? "var(--amber)" : "var(--red)",
+                    }}
+                  >
+                    {c.pct}%
+                  </span>
+                </div>
+                <div className="fdv-trash-prompt">{c.title}</div>
+                <div className="fdv-sub" style={{ margin: 0 }}>{c.correct}/{c.attempted} richtig (alle Nutzer zusammen)</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {userStats && (
+        <>
+          <div className="fdv-section-label" style={{ marginTop: 24 }}>Fortschritt pro Nutzer</div>
+          {userStats.length === 0 && <p className="fdv-sub">Noch keine Nutzer.</p>}
+          <div className="fdv-trash-list">
+            {userStats.map((u) => {
+              const pct = u.attempted > 0 ? Math.round((u.correct / u.attempted) * 100) : null;
+              return (
+                <div className="fdv-trash-item" key={u.email}>
+                  <div className="fdv-trash-prompt">{u.email}</div>
+                  <div className="fdv-sub" style={{ margin: 0 }}>
+                    {u.attempted > 0
+                      ? `${u.attempted} Fragen geübt · ${pct}% richtig`
+                      : "Noch nicht geübt"}
+                    {u.lastActive ? " · zuletzt aktiv " + new Date(u.lastActive).toLocaleDateString("de-CH") : ""}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
+// ---- Main app ----
+function FdvTrainerCloud() {
+  const [session, setSession] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [chapters, setChapters] = useState([]);
+  const [progress, setProgress] = useState({});
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingQ, setEditingQ] = useState(null);
+  const [screen, setScreen] = useState("home");
+  const [showInfo, setShowInfo] = useState(false);
+  const [guideChapter, setGuideChapter] = useState(null);
+  const [session_, setSessionQuiz] = useState(null); // quiz session
+  const [draft, setDraft] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthChecked(true);
+    });
+    const { data: listener } = sb.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const [offlineMode, setOfflineMode] = useState(false);
+
+  const loadData = useCallback(async (userId) => {
+    setDataLoaded(false);
+    const cacheKey = "lokwerk300-cache-" + userId;
+    let chapterRows, questionRows, progressRows, adminRow;
+    let failed = false;
+
+    try {
+      const [chaptersRes, questionsRes, progressRes, adminRes] = await Promise.all([
+        sb.from("chapters").select("*").order("sort_order").order("code"),
+        sb.from("questions").select("*").is("deleted_at", null),
+        sb.from("progress").select("*").eq("user_id", userId),
+        sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle(),
+      ]);
+      if (chaptersRes.error || questionsRes.error || progressRes.error) failed = true;
+      chapterRows = chaptersRes.data;
+      questionRows = questionsRes.data;
+      progressRows = progressRes.data;
+      adminRow = adminRes.data;
+    } catch (e) {
+      failed = true;
+    }
+
+    let usedOffline = false;
+    if (failed || !chapterRows) {
+      // Kein Netz oder Supabase nicht erreichbar: letzten erfolgreich geladenen Stand aus dem Browser nehmen.
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached) {
+          chapterRows = cached.chapterRows;
+          questionRows = cached.questionRows;
+          progressRows = cached.progressRows;
+          adminRow = cached.adminRow;
+          usedOffline = true;
+        }
+      } catch (e) {
+        /* kein nutzbarer Offline-Stand vorhanden */
+      }
+    } else {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows, adminRow }));
+      } catch (e) {
+        /* Speichern für Offline-Nutzung fehlgeschlagen, kein Problem für den aktuellen Aufruf */
+      }
+    }
+
+    setOfflineMode(usedOffline);
+
+    const byChapter = {};
+    (chapterRows || []).forEach((c) => {
+      byChapter[c.code] = { code: c.code, title: c.title, kind: c.kind || "quiz", guide: c.guide || null, questions: [] };
+    });
+    (questionRows || []).forEach((row) => {
+      const q = rowToQuestion(row);
+      if (byChapter[row.chapter_code]) byChapter[row.chapter_code].questions.push(q);
+    });
+    const orderedChapters = (chapterRows || []).map((c) => byChapter[c.code]);
+
+    const progressMap = {};
+    (progressRows || []).forEach((p) => {
+      progressMap[p.question_id] = p;
+    });
+
+    setChapters(orderedChapters);
+    setProgress(progressMap);
+    setIsAdmin(!!adminRow);
+    setDataLoaded(true);
+    return orderedChapters;
+  }, []);
+
+  useEffect(() => {
+    if (session && session.user) {
+      loadData(session.user.id);
+    }
+  }, [session, loadData]);
+
+  const allQuestions = useMemo(() => chapters.flatMap((c) => c.questions), [chapters]);
+  const wrongCount = useMemo(
+    () => allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false).length,
+    [allQuestions, progress]
+  );
+  const totalAttempted = useMemo(() => allQuestions.filter((q) => progress[q.id]).length, [allQuestions, progress]);
+
+  function loadQuestion(q) {
+    setDraft(initDraft(q));
+    setRevealed(false);
+  }
+  function beginSession(title, code, questions) {
+    const qs = shuffledCopy(questions).map(randomizeQuestion);
+    setSessionQuiz({ title, code, questions: qs, index: 0, correctCount: 0, answers: {}, results: {} });
+    loadQuestion(qs[0]);
+    setScreen("quiz");
+  }
+  function startChapter(chapter) { beginSession(chapter.title, chapter.code, chapter.questions); }
+  function startMixed() { beginSession("Zufallstraining", null, shuffledCopy(allQuestions).slice(0, 15)); }
+  function startReview() {
+    const wrong = allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false);
+    beginSession("Fehler wiederholen", null, wrong);
+  }
+
+  async function check() {
+    const q = session_.questions[session_.index];
+    const correct = isDraftCorrect(q, draft);
+    setRevealed(true);
+    const prior = progress[q.id] || { attempts: 0, correct_count: 0 };
+    const nextRow = {
+      user_id: session.user.id,
+      question_id: q.id,
+      attempts: prior.attempts + 1,
+      correct_count: prior.correct_count + (correct ? 1 : 0),
+      last_correct: correct,
+      updated_at: new Date().toISOString(),
+    };
+    setProgress((p) => ({ ...p, [q.id]: nextRow }));
+    setSessionQuiz((s) => {
+      const results = { ...s.results, [q.id]: correct };
+      const answers = { ...s.answers, [q.id]: draft };
+      return { ...s, results, answers, correctCount: s.questions.filter((x) => results[x.id]).length };
+    });
+    try {
+      await sb.from("progress").upsert(nextRow);
+    } catch (e) {
+      /* Offline: Fortschritt wird lokal angezeigt, aber erst beim nächsten Online-Start synchronisiert. */
+    }
+  }
+
+  // Show a question: restore the saved answer (read-only review) if it was already answered.
+  function openQuestion(q, answers) {
+    const saved = answers && answers[q.id];
+    if (saved) {
+      setDraft(saved);
+      setRevealed(true);
+    } else {
+      loadQuestion(q);
+    }
+  }
+
+  function next() {
+    if (session_.index + 1 >= session_.questions.length) {
+      setScreen("result");
+    } else {
+      const nextIndex = session_.index + 1;
+      setSessionQuiz((s) => ({ ...s, index: nextIndex }));
+      openQuestion(session_.questions[nextIndex], session_.answers);
+    }
+  }
+
+  function goBack() {
+    if (!session_ || session_.index <= 0) return;
+    const newIndex = session_.index - 1;
+    setSessionQuiz((s) => ({ ...s, index: newIndex }));
+    openQuestion(session_.questions[newIndex], session_.answers);
+  }
+  async function reportQuestion(qId) {
+    const note = window.prompt("Was stimmt an dieser Frage nicht? (optional, kann auch leer bleiben)");
+    if (note === null) return; // Abbrechen gedrückt
+    try {
+      const { error } = await sb.from("question_reports").insert({
+        question_id: qId,
+        reported_by: session.user.id,
+        note: note.trim(),
+      });
+      if (error) {
+        window.alert("Melden fehlgeschlagen: " + error.message);
+        return;
+      }
+      window.alert("Danke, die Frage wurde gemeldet.");
+    } catch (e) {
+      window.alert("Melden fehlgeschlagen. Bitte später erneut versuchen.");
+    }
+  }
+
+  function startEdit(qId) {
+    const chapter = chapters.find((c) => c.questions.some((x) => x.id === qId));
+    const question = chapter && chapter.questions.find((x) => x.id === qId);
+    if (!question) return;
+    setEditingQ({ question, chapterCode: chapter.code });
+    setScreen("edit");
+  }
+
+  function goHome() {
+    setSessionQuiz(null);
+    setDraft(null);
+    setRevealed(false);
+    setScreen("home");
+  }
+  async function logout() {
+    await sb.auth.signOut();
+    setSession(null);
+    setChapters([]);
+    setProgress({});
+    setScreen("home");
+  }
+
+  if (!authChecked) {
+    return <div className="fdv-app"><p className="fdv-sub">Lädt …</p></div>;
+  }
+  if (!session) {
+    if (showInfo) return <InfoScreen onBack={() => setShowInfo(false)} />;
+    return <LoginScreen onLoggedIn={setSession} onShowInfo={() => setShowInfo(true)} />;
+  }
+  if (session.user.user_metadata && session.user.user_metadata.must_change_password) {
+    return (
+      <ForcePasswordChangeScreen
+        onDone={async () => {
+          const { data } = await sb.auth.getSession();
+          setSession(data.session);
+        }}
+      />
+    );
+  }
+  if (!dataLoaded) {
+    return <div className="fdv-app"><p className="fdv-sub">Fragen werden geladen …</p></div>;
+  }
+
+  const currentQ = session_ && session_.questions.length > 0 ? session_.questions[session_.index] : null;
+  const draftComplete = currentQ && draft ? isDraftComplete(currentQ, draft) : false;
+  const needsCheckButton = currentQ && ["ms", "tfm", "matching"].includes(currentQ.type);
+
+  return (
+    <div className="fdv-app">
+      {screen === "home" && (
+        <>
+          <div className="fdv-header">
+            <h1 className="fdv-title">LokWerk300</h1>
+            <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
+          </div>
+          <p className="fdv-sub">
+            {session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt
+          </p>
+          {offlineMode && (
+            <div className="fdv-offline-banner">
+              Offline – zeigt den zuletzt geladenen Stand. Neue Fragen und dein Fortschritt werden synchronisiert, sobald wieder Internet verfügbar ist.
+            </div>
+          )}
+          <div className="fdv-railline" />
+
+          <div className="fdv-training-row">
+            <button className="fdv-training-btn" onClick={startMixed}>
+              <span className="label">Zufallstraining</span>
+              <span className="meta">15 gemischte Fragen</span>
+            </button>
+            <button className={"fdv-training-btn" + (wrongCount === 0 ? " disabled" : "")} onClick={startReview}>
+              <span className="label">Fehler wiederholen</span>
+              <span className="meta">{wrongCount} offen</span>
+            </button>
+          </div>
+
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>👤 Nutzerverwaltung</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("trash")}>🗑 Papierkorb</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("reports")}>🚩 Gemeldete Fragen</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("import")}>📥 Excel-Import</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("chapters")}>📚 Kapitel verwalten</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("team")}>📊 Team-Übersicht</button>
+          )}
+
+          <div className="fdv-section-label">Kapitel</div>
+          <div className="fdv-chapter-list">
+            {chapters.map((chapter) => {
+              const stats = chapterStats(chapter, progress);
+              const color = masteryColor(stats);
+              return (
+                <button key={chapter.code} className="fdv-chapter-row" onClick={() => (chapter.kind === "guide" ? (setGuideChapter(chapter), setScreen("guide")) : startChapter(chapter))}>
+                  <span className="fdv-chapter-code">{chapter.code}</span>
+                  <span className="fdv-chapter-title">{chapter.title}</span>
+                  {chapter.kind === "guide" ? (
+                    <span className="fdv-mastery"><span className="fdv-mastery-text">Anleitung</span></span>
+                  ) : (
+                    <span className="fdv-mastery">
+                      <span className="fdv-mastery-dot" style={{ background: color }} />
+                      <span className="fdv-mastery-text">{stats.attempted}/{stats.total}</span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="fdv-sub" style={{ marginTop: 20, textAlign: "center" }}>
+            <button className="fdv-link-btn" onClick={() => setScreen("info")}>Info &amp; Haftungsausschluss</button>
+          </p>
+        </>
+      )}
+
+      {screen === "info" && <InfoScreen onBack={() => setScreen("home")} />}
+
+      {screen === "guide" && guideChapter && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">{guideChapter.title}</span>
+          </div>
+          <GuideScreen chapter={guideChapter} />
+        </>
+      )}
+
+      {screen === "add" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Neue Frage</span>
+          </div>
+          <AddQuestionScreen
+            chapters={chapters}
+            userId={session.user.id}
+            onCancel={() => setScreen("home")}
+            onDone={async () => {
+              await loadData(session.user.id);
+              setScreen("home");
+            }}
+          />
+        </>
+      )}
+
+      {screen === "adduser" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Nutzerverwaltung</span>
+          </div>
+          <UsersScreen
+            accessToken={session.access_token}
+            currentUserId={session.user.id}
+            onCancel={() => setScreen("home")}
+          />
+        </>
+      )}
+
+      {screen === "trash" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Papierkorb</span>
+          </div>
+          <TrashScreen
+            onCancel={() => setScreen("home")}
+            onRestored={() => loadData(session.user.id)}
+          />
+        </>
+      )}
+
+      {screen === "reports" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Gemeldete Fragen</span>
+          </div>
+          <ReportsScreen
+            onCancel={() => setScreen("home")}
+            onEdit={(qId) => startEdit(qId)}
+          />
+        </>
+      )}
+
+      {screen === "import" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Excel-Import</span>
+          </div>
+          <ImportScreen
+            chapters={chapters}
+            onCancel={() => setScreen("home")}
+            onDone={() => loadData(session.user.id)}
+          />
+        </>
+      )}
+
+      {screen === "chapters" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Kapitel verwalten</span>
+          </div>
+          <ChaptersScreen
+            onCancel={() => setScreen("home")}
+            onChanged={() => loadData(session.user.id)}
+          />
+        </>
+      )}
+
+      {screen === "team" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Team-Übersicht</span>
+          </div>
+          <TeamScreen
+            accessToken={session.access_token}
+            chapters={chapters}
+            onCancel={() => setScreen("home")}
+          />
+        </>
+      )}
+
+      {screen === "edit" && isAdmin && editingQ && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen(session_ ? "quiz" : "home")}>Zurück</button>
+            <span className="fdv-quiz-title">Frage bearbeiten</span>
+          </div>
+          <AddQuestionScreen
+            chapters={chapters}
+            userId={session.user.id}
+            editing={editingQ}
+            onCancel={() => setScreen(session_ ? "quiz" : "home")}
+            onDone={async () => {
+              const qId = editingQ.question.id;
+              const fresh = await loadData(session.user.id);
+              setEditingQ(null);
+              if (!fresh || fresh.length === 0) {
+                goHome();
+                return;
+              }
+              const edited = fresh.flatMap((c) => c.questions).find((x) => x.id === qId);
+              if (session_) {
+                const idx = session_.questions.findIndex((x) => x.id === qId);
+                if (idx >= 0) {
+                  let questions = [...session_.questions];
+                  const answers = { ...session_.answers };
+                  const results = { ...session_.results };
+                  delete answers[qId];
+                  delete results[qId];
+                  let newIndex = idx;
+                  if (edited) {
+                    // edited: put the corrected version back so it can be answered again
+                    questions[idx] = randomizeQuestion(edited);
+                  } else {
+                    // deleted: drop it from the running session
+                    questions = questions.filter((x) => x.id !== qId);
+                    if (questions.length === 0) {
+                      goHome();
+                      return;
+                    }
+                    newIndex = Math.min(idx, questions.length - 1);
+                  }
+                  const correctCount = questions.filter((x) => results[x.id]).length;
+                  setSessionQuiz({ ...session_, questions, answers, results, correctCount, index: newIndex });
+                  openQuestion(questions[newIndex], answers);
+                  setScreen("quiz");
+                  return;
+                }
+              }
+              goHome();
+            }}
+          />
+        </>
+      )}
+
+      {screen === "quiz" && session_ && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={goHome}>Zurück</button>
+            <span className="fdv-quiz-title">{session_.title}{session_.code ? " · " + session_.code : ""}</span>
+            <span className="fdv-quiz-title" style={{ flex: "none", textAlign: "right" }}>
+              {session_.index + 1}/{session_.questions.length}
+            </span>
+          </div>
+          <div className="fdv-progress-track">
+            {session_.questions.map((q, i) => {
+              let cls = "fdv-progress-tick";
+              if (i === session_.index) cls += " current";
+              else if (session_.results && session_.results[q.id] !== undefined) {
+                cls += session_.results[q.id] ? " correct" : " wrong";
+              }
+              return <div key={q.id} className={cls} />;
+            })}
+          </div>
+
+          {!currentQ ? (
+            <div className="fdv-card">
+              <p className="fdv-question">Keine Fragen in dieser Auswahl.</p>
+              <button className="fdv-next-btn" onClick={goHome}>Zurück zur Übersicht</button>
+            </div>
+          ) : (
+            <div className="fdv-card">
+              <div className="fdv-card-head">
+                <span className="fdv-type-tag">{TYPE_LABEL[currentQ.type] || currentQ.type}</span>
+                <span className="fdv-card-head-actions">
+                  {isAdmin && (
+                    <button type="button" className="fdv-link-btn" onClick={() => startEdit(currentQ.id)}>
+                      Bearbeiten
+                    </button>
+                  )}
+                  <button type="button" className="fdv-link-btn" onClick={() => reportQuestion(currentQ.id)}>
+                    🚩 Melden
+                  </button>
+                </span>
+              </div>
+              {currentQ.source && <div className="fdv-source-tag">Quelle: {currentQ.source}</div>}
+              {currentQ.image && (
+                <img className="fdv-question-image" src={currentQ.image} alt="" onError={(e) => { e.target.style.display = "none"; }} />
+              )}
+              <p className="fdv-question">{currentQ.prompt}</p>
+              <QuestionBody q={currentQ} draft={draft} setDraft={(d) => setDraft({ ...draft, ...d })} revealed={revealed} />
+
+              {!revealed && needsCheckButton && (
+                <button className={"fdv-check-btn" + (draftComplete ? " enabled" : "")} disabled={!draftComplete} onClick={check}>
+                  Prüfen
+                </button>
+              )}
+              {!revealed && !needsCheckButton && draftComplete && (
+                <button className="fdv-check-btn enabled" onClick={check}>Prüfen</button>
+              )}
+
+              {revealed && (
+                <>
+                  {currentQ.explanation && (
+                    <div className="fdv-explanation">
+                      <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
+                    </div>
+                  )}
+                  <div className="fdv-nav-row">
+                    {session_.index > 0 && (
+                      <button type="button" className="fdv-prev-btn" onClick={goBack}>
+                        ‹ Vorherige
+                      </button>
+                    )}
+                    <button className="fdv-next-btn" onClick={next}>
+                      {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {screen === "result" && session_ && (
+        <div className="fdv-card" style={{ textAlign: "center", marginTop: 40 }}>
+          <div className="fdv-quiz-title" style={{ textAlign: "center" }}>{session_.title}</div>
+          <div
+            className="fdv-result-score"
+            style={{
+              color:
+                session_.questions.length === 0 ? "var(--text)" :
+                session_.correctCount / session_.questions.length >= 0.8 ? "var(--green)" :
+                session_.correctCount / session_.questions.length >= 0.5 ? "var(--amber)" : "var(--red)",
+            }}
+          >
+            {session_.correctCount}/{session_.questions.length}
+          </div>
+          <div className="fdv-result-sub">richtig beantwortet</div>
+          <div className="fdv-result-actions">
+            {session_.code && (
+              <button className="fdv-result-btn" onClick={() => { const chapter = chapters.find((c) => c.code === session_.code); startChapter(chapter); }}>
+                Kapitel wiederholen
+              </button>
+            )}
+            {wrongCount > 0 && <button className="fdv-result-btn warn" onClick={startReview}>Fehler wiederholen ({wrongCount})</button>}
+            <button className="fdv-result-btn primary" onClick={goHome}>Zur Übersicht</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const rootEl = document.getElementById("root");
+ReactDOM.createRoot(rootEl).render(<FdvTrainerCloud />);
+
+</script>
+</body>
+</html>
