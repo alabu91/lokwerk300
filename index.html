@@ -1041,6 +1041,92 @@ function UsersScreen({ accessToken, currentUserId, onCancel }) {
   );
 }
 
+// ---- Anleitung (Kapitel ohne Fragen) ----
+function GuideDiagram() {
+  const box = (x, label, sub, fill) => (
+    <g>
+      <rect x={x} y="20" width="120" height="54" rx="12" fill={fill} stroke="#58585a" strokeWidth="1.5" />
+      <text x={x + 60} y="44" textAnchor="middle" fontSize="13" fontWeight="700" fill="#231f20">{label}</text>
+      <text x={x + 60} y="62" textAnchor="middle" fontSize="11" fill="#58585a">{sub}</text>
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 360 150" width="100%" role="img" aria-label="Schema der Doppeltraktion: geführte Lok 2 und führende Lok 1">
+      {box(20, "Lok 2", "geführt, unbesetzt", "#f6f7f7")}
+      {box(220, "Lok 1", "führend, besetzt", "#eaf7de")}
+      <line x1="140" y1="47" x2="220" y2="47" stroke="#231f20" strokeWidth="3" />
+      <text x="180" y="40" textAnchor="middle" fontSize="10" fill="#58585a">Kupplung</text>
+      <text x="180" y="66" textAnchor="middle" fontSize="10" fill="#58585a">HL/HB</text>
+      <line x1="80" y1="74" x2="80" y2="104" stroke="#58585a" strokeWidth="1" strokeDasharray="3 3" />
+      <line x1="280" y1="74" x2="280" y2="104" stroke="#58585a" strokeWidth="1" strokeDasharray="3 3" />
+      <text x="80" y="118" textAnchor="middle" fontSize="11" fill="#231f20">Betriebsart ZDS/ZMS</text>
+      <text x="80" y="133" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <text x="280" y="118" textAnchor="middle" fontSize="11" fill="#231f20">gleiche Betriebsart</text>
+      <text x="280" y="133" textAnchor="middle" fontSize="11" fill="#231f20">Bremsart G-P-R</text>
+      <line x1="140" y1="90" x2="220" y2="90" stroke="#75c93b" strokeWidth="3" />
+      <text x="180" y="85" textAnchor="middle" fontSize="10" fill="#58585a">ZS + UIC-Kabel</text>
+    </svg>
+  );
+}
+
+function GuideScreen({ chapter }) {
+  const g = chapter.guide || {};
+  const [done, setDone] = useState({});
+  const phases = g.phases || [];
+  const total = phases.reduce((n, ph) => n + ph.steps.length, 0);
+  const doneCount = Object.keys(done).filter((k) => done[k]).length;
+  function toggle(key) { setDone((d) => ({ ...d, [key]: !d[key] })); }
+  return (
+    <div>
+      {g.intro && <div className="fdv-card"><p style={{ margin: 0, lineHeight: 1.55 }}>{g.intro}</p></div>}
+      <div className="fdv-card"><GuideDiagram /></div>
+      {(g.warnings || []).map((w, i) => (
+        <div key={i} className="fdv-offline-banner">{w}</div>
+      ))}
+      <p className="fdv-sub" style={{ margin: "12px 0 4px" }}>
+        Zum Üben kannst du die Schritte abhaken ({doneCount}/{total}). Die Häkchen werden nicht gespeichert.
+      </p>
+      {phases.map((ph, pi) => (
+        <div key={pi} className="fdv-card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <strong>{ph.title}</strong>
+            {ph.who && <span className="fdv-type-tag">{ph.who}</span>}
+          </div>
+          {ph.lead && <p className="fdv-sub" style={{ margin: "6px 0 8px" }}>{ph.lead}</p>}
+          {ph.steps.map((st, si) => {
+            const key = pi + "-" + si;
+            const on = !!done[key];
+            return (
+              <div key={si} style={{ marginTop: 6 }}>
+                <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", lineHeight: 1.45, opacity: on ? 0.55 : 1 }}>
+                  <input type="checkbox" checked={on} onChange={() => toggle(key)} style={{ marginTop: 3, width: 18, height: 18, accentColor: "#75c93b", flex: "0 0 auto" }} />
+                  <span>
+                    <span style={{ textDecoration: on ? "line-through" : "none" }}>{st.text}</span>
+                    {st.ref && <span className="fdv-sub" style={{ marginLeft: 6, fontSize: 12 }}>[{st.ref}]</span>}
+                  </span>
+                </label>
+                {st.important && <div className="fdv-offline-banner" style={{ margin: "6px 0 0 28px" }}>{st.important}</div>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      {g.notes && (
+        <>
+          <div className="fdv-section-label">{g.notes_title || "Hinweise"}</div>
+          {g.notes.map((n, i) => (
+            <div key={i} className="fdv-card">
+              <strong>{n.title}</strong>
+              <p style={{ margin: "4px 0 0", lineHeight: 1.5 }}>{n.text}</p>
+            </div>
+          ))}
+        </>
+      )}
+      {g.source && <p className="fdv-sub" style={{ marginTop: 12 }}>Quelle: {g.source}</p>}
+    </div>
+  );
+}
+
 // ---- Info / Haftungsausschluss ----
 function InfoScreen({ onBack }) {
   return (
@@ -1275,7 +1361,7 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       <form onSubmit={submit}>
         <label className="fdv-label">Kapitel</label>
         <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
-          {chapters.map((c) => (
+          {chapters.filter((c) => c.kind !== "guide").map((c) => (
             <option key={c.code} value={c.code}>{c.code} – {c.title}</option>
           ))}
         </select>
@@ -1744,7 +1830,7 @@ function ImportScreen({ chapters, onCancel, onDone }) {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: "array" });
-        const validCodes = new Set(chapters.map((c) => c.code));
+        const validCodes = new Set(chapters.filter((c) => c.kind !== "guide").map((c) => c.code));
         const { rows, warnings } = parseWorkbookToRows(workbook, validCodes);
         setParsed(rows);
         setWarnings(warnings);
@@ -2099,6 +2185,7 @@ function FdvTrainerCloud() {
   const [editingQ, setEditingQ] = useState(null);
   const [screen, setScreen] = useState("home");
   const [showInfo, setShowInfo] = useState(false);
+  const [guideChapter, setGuideChapter] = useState(null);
   const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -2165,7 +2252,7 @@ function FdvTrainerCloud() {
 
     const byChapter = {};
     (chapterRows || []).forEach((c) => {
-      byChapter[c.code] = { code: c.code, title: c.title, questions: [] };
+      byChapter[c.code] = { code: c.code, title: c.title, kind: c.kind || "quiz", guide: c.guide || null, questions: [] };
     });
     (questionRows || []).forEach((row) => {
       const q = rowToQuestion(row);
@@ -2391,13 +2478,17 @@ function FdvTrainerCloud() {
               const stats = chapterStats(chapter, progress);
               const color = masteryColor(stats);
               return (
-                <button key={chapter.code} className="fdv-chapter-row" onClick={() => startChapter(chapter)}>
+                <button key={chapter.code} className="fdv-chapter-row" onClick={() => (chapter.kind === "guide" ? (setGuideChapter(chapter), setScreen("guide")) : startChapter(chapter))}>
                   <span className="fdv-chapter-code">{chapter.code}</span>
                   <span className="fdv-chapter-title">{chapter.title}</span>
-                  <span className="fdv-mastery">
-                    <span className="fdv-mastery-dot" style={{ background: color }} />
-                    <span className="fdv-mastery-text">{stats.attempted}/{stats.total}</span>
-                  </span>
+                  {chapter.kind === "guide" ? (
+                    <span className="fdv-mastery"><span className="fdv-mastery-text">Anleitung</span></span>
+                  ) : (
+                    <span className="fdv-mastery">
+                      <span className="fdv-mastery-dot" style={{ background: color }} />
+                      <span className="fdv-mastery-text">{stats.attempted}/{stats.total}</span>
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -2409,6 +2500,16 @@ function FdvTrainerCloud() {
       )}
 
       {screen === "info" && <InfoScreen onBack={() => setScreen("home")} />}
+
+      {screen === "guide" && guideChapter && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">{guideChapter.title}</span>
+          </div>
+          <GuideScreen chapter={guideChapter} />
+        </>
+      )}
 
       {screen === "add" && isAdmin && (
         <>
