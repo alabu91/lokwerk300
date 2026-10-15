@@ -1926,6 +1926,38 @@ function ImportScreen({ chapters, onCancel, onDone }) {
 }
 
 // ---- Admin screen: manage chapters (create, rename, reorder, delete) ----
+function UnlockScreen({ chapter, onUnlocked }) {
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(e) {
+    e.preventDefault();
+    if (!pw) return;
+    setBusy(true);
+    setError("");
+    const { data, error: err } = await sb.rpc("unlock_chapter", { p_code: chapter.code, p_password: pw });
+    if (err) { setBusy(false); setError("Fehler: " + err.message); return; }
+    if (!data) { setBusy(false); setError("Falsches Passwort."); return; }
+    await onUnlocked();
+  }
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">🔒 Gesperrtes Kapitel</span>
+      <p className="fdv-sub">Für dieses Kapitel ist ein Passwort nötig. Einmal eingegeben, bleibt es für dein Konto freigeschaltet.</p>
+      <form onSubmit={submit}>
+        <label className="fdv-label">Passwort</label>
+        <input className="fdv-input" type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} />
+        {error && <div className="fdv-form-error">{error}</div>}
+        <div className="fdv-form-actions">
+          <button type="submit" className="fdv-result-btn primary" disabled={busy || !pw}>
+            {busy ? "Prüfe …" : "Freischalten"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function ChaptersScreen({ onCancel, onChanged }) {
   const [rows, setRows] = useState(null);
   const [counts, setCounts] = useState({});
@@ -1935,6 +1967,22 @@ function ChaptersScreen({ onCancel, onChanged }) {
   const [newCode, setNewCode] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [pwInputs, setPwInputs] = useState({}); // code -> new password
+
+  async function setPassword(ch, remove) {
+    const pw = remove ? "" : (pwInputs[ch.code] || "");
+    if (!remove && pw.length < 4) { setError("Das Passwort muss mindestens 4 Zeichen haben."); return; }
+    if (!remove && !window.confirm('Passwort für "' + ch.title + '" setzen? Bereits freigeschaltete Nutzer müssen es neu eingeben.')) return;
+    if (remove && !window.confirm('Passwortschutz für "' + ch.title + '" entfernen?')) return;
+    setBusyCode(ch.code);
+    setError("");
+    const { error: err } = await sb.rpc("set_chapter_password", { p_code: ch.code, p_password: pw });
+    setBusyCode(null);
+    if (err) { setError("Passwort speichern fehlgeschlagen: " + err.message); return; }
+    setPwInputs((x) => ({ ...x, [ch.code]: "" }));
+    await load();
+    onChanged();
+  }
 
   const load = useCallback(async () => {
     setError("");
@@ -2061,6 +2109,25 @@ function ChaptersScreen({ onCancel, onChanged }) {
                   value={edit.sort_order}
                   onChange={(e) => setEdit(ch.code, "sort_order", e.target.value)}
                 />
+                <label className="fdv-label">{ch.locked ? "🔒 Passwortschutz aktiv – neues Passwort setzen" : "Passwortschutz (mind. 4 Zeichen)"}</label>
+                <input
+                  className="fdv-input"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Neues Passwort"
+                  value={pwInputs[ch.code] || ""}
+                  onChange={(e) => setPwInputs((x) => ({ ...x, [ch.code]: e.target.value }))}
+                />
+                <div className="fdv-form-actions">
+                  <button type="button" className="fdv-result-btn" disabled={busyCode === ch.code} onClick={() => setPassword(ch, false)}>
+                    {ch.locked ? "Passwort ändern" : "Passwort setzen"}
+                  </button>
+                  {ch.locked && (
+                    <button type="button" className="fdv-result-btn" disabled={busyCode === ch.code} onClick={() => setPassword(ch, true)}>
+                      Schutz entfernen
+                    </button>
+                  )}
+                </div>
                 <div className="fdv-form-actions">
                   <button type="button" className="fdv-result-btn warn" disabled={busyCode === ch.code} onClick={() => removeChapter(ch)}>
                     Löschen
@@ -2216,6 +2283,7 @@ function FdvTrainerCloud() {
   const [screen, setScreen] = useState("home");
   const [showInfo, setShowInfo] = useState(false);
   const [guideChapter, setGuideChapter] = useState(null);
+  const [unlockTarget, setUnlockTarget] = useState(null);
   const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -2236,21 +2304,23 @@ function FdvTrainerCloud() {
   const loadData = useCallback(async (userId) => {
     setDataLoaded(false);
     const cacheKey = "lokwerk300-cache-" + userId;
-    let chapterRows, questionRows, progressRows, adminRow;
+    let chapterRows, questionRows, progressRows, adminRow, unlockRows = [];
     let failed = false;
 
     try {
-      const [chaptersRes, questionsRes, progressRes, adminRes] = await Promise.all([
+      const [chaptersRes, questionsRes, progressRes, adminRes, unlockRes] = await Promise.all([
         sb.from("chapters").select("*").order("sort_order").order("code"),
         sb.from("questions").select("*").is("deleted_at", null),
         sb.from("progress").select("*").eq("user_id", userId),
         sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle(),
+        sb.from("chapter_unlocks").select("chapter_code").eq("user_id", userId),
       ]);
       if (chaptersRes.error || questionsRes.error || progressRes.error) failed = true;
       chapterRows = chaptersRes.data;
       questionRows = questionsRes.data;
       progressRows = progressRes.data;
       adminRow = adminRes.data;
+      unlockRows = (unlockRes && unlockRes.data) || [];
     } catch (e) {
       failed = true;
     }
@@ -2265,6 +2335,7 @@ function FdvTrainerCloud() {
           questionRows = cached.questionRows;
           progressRows = cached.progressRows;
           adminRow = cached.adminRow;
+          unlockRows = cached.unlockRows || [];
           usedOffline = true;
         }
       } catch (e) {
@@ -2272,7 +2343,7 @@ function FdvTrainerCloud() {
       }
     } else {
       try {
-        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows, adminRow }));
+        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows, adminRow, unlockRows }));
       } catch (e) {
         /* Speichern für Offline-Nutzung fehlgeschlagen, kein Problem für den aktuellen Aufruf */
       }
@@ -2282,11 +2353,17 @@ function FdvTrainerCloud() {
 
     const byChapter = {};
     (chapterRows || []).forEach((c) => {
-      byChapter[c.code] = { code: c.code, title: c.title, kind: c.kind || "quiz", guide: c.guide || null, questions: [] };
+      const unlockedSet = new Set((unlockRows || []).map((u) => u.chapter_code));
+      const locked = !!c.locked;
+      byChapter[c.code] = {
+        code: c.code, title: c.title, kind: c.kind || "quiz", guide: c.guide || null, questions: [],
+        locked, accessible: !locked || !!adminRow || unlockedSet.has(c.code),
+      };
     });
     (questionRows || []).forEach((row) => {
       const q = rowToQuestion(row);
-      if (byChapter[row.chapter_code]) byChapter[row.chapter_code].questions.push(q);
+      const ch = byChapter[row.chapter_code];
+      if (ch && ch.accessible) ch.questions.push(q);
     });
     const orderedChapters = (chapterRows || []).map((c) => byChapter[c.code]);
 
@@ -2326,6 +2403,20 @@ function FdvTrainerCloud() {
     setScreen("quiz");
   }
   function startChapter(chapter) { beginSession(chapter.title, chapter.code, chapter.questions); }
+  async function openGuide(chapter) {
+    let guide = chapter.guide;
+    if (!guide) {
+      const { data } = await sb.from("chapter_guides").select("guide").eq("chapter_code", chapter.code).maybeSingle();
+      guide = data ? data.guide : null;
+    }
+    setGuideChapter({ ...chapter, guide: guide || {} });
+    setScreen("guide");
+  }
+  function openChapter(chapter) {
+    if (!chapter.accessible) { setUnlockTarget(chapter); setScreen("unlock"); return; }
+    if (chapter.kind === "guide") openGuide(chapter);
+    else startChapter(chapter);
+  }
   function startMixed() { beginSession("Zufallstraining", null, shuffledCopy(allQuestions).slice(0, 15)); }
   function startReview() {
     const wrong = allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false);
@@ -2508,10 +2599,12 @@ function FdvTrainerCloud() {
               const stats = chapterStats(chapter, progress);
               const color = masteryColor(stats);
               return (
-                <button key={chapter.code} className="fdv-chapter-row" onClick={() => (chapter.kind === "guide" ? (setGuideChapter(chapter), setScreen("guide")) : startChapter(chapter))}>
+                <button key={chapter.code} className="fdv-chapter-row" onClick={() => openChapter(chapter)}>
                   <span className="fdv-chapter-code">{chapter.code}</span>
-                  <span className="fdv-chapter-title">{chapter.title}</span>
-                  {chapter.kind === "guide" ? (
+                  <span className="fdv-chapter-title">{chapter.locked ? (chapter.accessible ? "🔓 " : "🔒 ") : ""}{chapter.title}</span>
+                  {!chapter.accessible ? (
+                    <span className="fdv-mastery"><span className="fdv-mastery-text">gesperrt</span></span>
+                  ) : chapter.kind === "guide" ? (
                     <span className="fdv-mastery"><span className="fdv-mastery-text">Anleitung</span></span>
                   ) : (
                     <span className="fdv-mastery">
@@ -2530,6 +2623,26 @@ function FdvTrainerCloud() {
       )}
 
       {screen === "info" && <InfoScreen onBack={() => setScreen("home")} />}
+
+      {screen === "unlock" && unlockTarget && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">{unlockTarget.title}</span>
+          </div>
+          <UnlockScreen
+            chapter={unlockTarget}
+            onUnlocked={async () => {
+              const ch = unlockTarget;
+              const list = await loadData(session.user.id);
+              const fresh = (list || []).find((c) => c.code === ch.code);
+              setUnlockTarget(null);
+              if (fresh && fresh.kind === "guide") await openGuide(fresh);
+              else setScreen("home");
+            }}
+          />
+        </>
+      )}
 
       {screen === "guide" && guideChapter && (
         <>
