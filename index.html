@@ -43,6 +43,8 @@
           max-width: 640px;
           margin: 0 auto;
         }
+        @media (min-width: 768px) { .fdv-app { max-width: 820px; padding: 28px 24px 48px; } }
+        @media (min-width: 1200px) { .fdv-app { max-width: 960px; } }
         .fdv-app * { box-sizing: border-box; }
         .fdv-header {
           display: flex;
@@ -2032,7 +2034,14 @@ function ChaptersScreen({ onCancel, onChanged }) {
       );
       return;
     }
-    if (!window.confirm('Kapitel "' + ch.title + '" (' + ch.code + ") wirklich löschen?")) return;
+    if (ch.kind === "guide") {
+      const typed = window.prompt(
+        'ACHTUNG: "' + ch.title + '" ist ein Anleitungs-Kapitel. Die Anleitung geht beim Löschen endgültig verloren.\n\n' +
+        'Zur Bestätigung den Kapitel-Code eintippen: ' + ch.code
+      );
+      if (typed === null) return;
+      if (typed.trim() !== ch.code) { window.alert("Code stimmt nicht überein. Nichts wurde gelöscht."); return; }
+    } else if (!window.confirm('Kapitel "' + ch.title + '" (' + ch.code + ") wirklich löschen?")) return;
     setBusyCode(ch.code);
     setError("");
     const { error } = await sb.from("chapters").delete().eq("code", ch.code);
