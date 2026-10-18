@@ -626,6 +626,15 @@ function chapterStats(chapter, progress) {
   return { attempted, correct, total: chapter.questions.length };
 }
 
+// Wiederholen nach System: Abstand in Tagen je nach Serie richtiger Antworten in Folge
+const REVIEW_DAYS = [0, 1, 3, 7, 14, 30];
+function isDue(p) {
+  if (!p) return false;
+  const days = REVIEW_DAYS[Math.min(p.streak || 0, REVIEW_DAYS.length - 1)];
+  const last = p.updated_at ? new Date(p.updated_at).getTime() : 0;
+  return Date.now() - last >= days * 86400000;
+}
+
 function masteryColor(stats) {
   if (stats.attempted === 0) return "var(--grey)";
   const ratio = stats.correct / stats.attempted;
@@ -2399,6 +2408,25 @@ function FdvTrainerCloud() {
     () => allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false).length,
     [allQuestions, progress]
   );
+  const dueQuestions = useMemo(
+    () => allQuestions.filter((q) => isDue(progress[q.id])),
+    [allQuestions, progress]
+  );
+  const weakChapters = useMemo(() => {
+    return chapters
+      .filter((c) => c.kind !== "guide" && c.accessible)
+      .map((c) => {
+        let attempts = 0, correct = 0;
+        c.questions.forEach((q) => {
+          const p = progress[q.id];
+          if (p) { attempts += p.attempts || 0; correct += p.correct_count || 0; }
+        });
+        return { chapter: c, attempts, ratio: attempts > 0 ? correct / attempts : 1 };
+      })
+      .filter((x) => x.attempts >= 5 && x.ratio < 0.8)
+      .sort((a, b) => a.ratio - b.ratio)
+      .slice(0, 3);
+  }, [chapters, progress]);
   const totalAttempted = useMemo(() => allQuestions.filter((q) => progress[q.id]).length, [allQuestions, progress]);
 
   function loadQuestion(q) {
@@ -2427,6 +2455,9 @@ function FdvTrainerCloud() {
     else startChapter(chapter);
   }
   function startMixed() { beginSession("Zufallstraining", null, shuffledCopy(allQuestions).slice(0, 15)); }
+  function startDue() {
+    beginSession("Heute fällig", null, shuffledCopy(dueQuestions).slice(0, 20));
+  }
   function startReview() {
     const wrong = allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false);
     beginSession("Fehler wiederholen", null, wrong);
@@ -2436,13 +2467,14 @@ function FdvTrainerCloud() {
     const q = session_.questions[session_.index];
     const correct = isDraftCorrect(q, draft);
     setRevealed(true);
-    const prior = progress[q.id] || { attempts: 0, correct_count: 0 };
+    const prior = progress[q.id] || { attempts: 0, correct_count: 0, streak: 0 };
     const nextRow = {
       user_id: session.user.id,
       question_id: q.id,
       attempts: prior.attempts + 1,
       correct_count: prior.correct_count + (correct ? 1 : 0),
       last_correct: correct,
+      streak: correct ? (prior.streak || 0) + 1 : 0,
       updated_at: new Date().toISOString(),
     };
     setProgress((p) => ({ ...p, [q.id]: nextRow }));
@@ -2579,6 +2611,33 @@ function FdvTrainerCloud() {
               <span className="meta">{wrongCount} offen</span>
             </button>
           </div>
+
+          <div className="fdv-training-row" style={{ marginTop: -10 }}>
+            <button className={"fdv-training-btn" + (dueQuestions.length === 0 ? " disabled" : "")} onClick={dueQuestions.length > 0 ? startDue : undefined}>
+              <span className="label">Heute fällig</span>
+              <span className="meta">
+                {dueQuestions.length > 0 ? dueQuestions.length + " Fragen zum Wiederholen" : "nichts fällig – gut gemacht"}
+              </span>
+            </button>
+          </div>
+
+          {weakChapters.length > 0 && (
+            <>
+              <div className="fdv-section-label">Hier solltest du üben</div>
+              <div className="fdv-chapter-list" style={{ marginBottom: 16 }}>
+                {weakChapters.map(({ chapter, ratio }) => (
+                  <button key={chapter.code} className="fdv-chapter-row" onClick={() => startChapter(chapter)}>
+                    <span className="fdv-chapter-code">{chapter.code}</span>
+                    <span className="fdv-chapter-title">{chapter.title}</span>
+                    <span className="fdv-mastery">
+                      <span className="fdv-mastery-dot" style={{ background: "var(--red)" }} />
+                      <span className="fdv-mastery-text">{Math.round(ratio * 100)} % richtig</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
