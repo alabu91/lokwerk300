@@ -566,7 +566,7 @@
 </script>
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useCallback } = React;
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
 const sb = window.sb;
 
@@ -1261,10 +1261,21 @@ function formFromQuestion(q) {
 }
 
 function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
-  const [chapterCode, setChapterCode] = useState(editing ? editing.chapterCode : (chapters[0]?.code || ""));
-  const [type, setType] = useState(editing ? editing.question.type : "sc");
-  const [prompt, setPrompt] = useState(editing ? editing.question.prompt : "");
-  const [image, setImage] = useState(editing ? (editing.question.image || "") : "");
+  const draftKey = "lokwerk300-qdraft-" + userId;
+  const savedRef = useRef(undefined);
+  if (savedRef.current === undefined) {
+    let d = null;
+    if (!editing) {
+      try { d = JSON.parse(localStorage.getItem(draftKey) || "null"); } catch (e) { d = null; }
+    }
+    savedRef.current = d;
+  }
+  const saved = savedRef.current;
+  const [restored, setRestored] = useState(!!saved);
+  const [chapterCode, setChapterCode] = useState(editing ? editing.chapterCode : (saved && chapters.some((c) => c.code === saved.chapterCode) ? saved.chapterCode : (chapters[0]?.code || "")));
+  const [type, setType] = useState(editing ? editing.question.type : (saved ? saved.type : "sc"));
+  const [prompt, setPrompt] = useState(editing ? editing.question.prompt : (saved ? saved.prompt : ""));
+  const [image, setImage] = useState(editing ? (editing.question.image || "") : (saved ? saved.image || "" : ""));
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
@@ -1288,9 +1299,28 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
     }
     setUploadingImage(false);
   }
-  const [explanation, setExplanation] = useState(editing ? (editing.question.explanation || "") : "");
-  const [source, setSource] = useState(editing ? (editing.question.source || "") : "");
-  const [form, setForm] = useState(editing ? formFromQuestion(editing.question) : emptyFormForType("sc"));
+  const [explanation, setExplanation] = useState(editing ? (editing.question.explanation || "") : (saved ? saved.explanation || "" : ""));
+  const [source, setSource] = useState(editing ? (editing.question.source || "") : (saved ? saved.source || "" : ""));
+  const [form, setForm] = useState(editing ? formFromQuestion(editing.question) : (saved && saved.form ? saved.form : emptyFormForType("sc")));
+
+  // Entwurf laufend im Browser sichern (nur beim Neuanlegen), damit nichts verloren geht
+  useEffect(() => {
+    if (editing) return;
+    try {
+      if (prompt.trim() || explanation.trim() || image.trim() || source.trim()) {
+        localStorage.setItem(draftKey, JSON.stringify({ chapterCode, type, prompt, image, explanation, source, form }));
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch (e) { /* Speichern nicht möglich, kein Problem */ }
+  }, [chapterCode, type, prompt, image, explanation, source, form]);
+  function discardDraft() {
+    try { localStorage.removeItem(draftKey); } catch (e) { /* ignore */ }
+    setChapterCode(chapters[0]?.code || "");
+    setType("sc"); setPrompt(""); setImage(""); setExplanation(""); setSource("");
+    setForm(emptyFormForType("sc"));
+    setRestored(false);
+  }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -1375,6 +1405,7 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       setError("Speichern fehlgeschlagen: " + error.message);
       return;
     }
+    try { localStorage.removeItem(draftKey); } catch (e) { /* ignore */ }
     onDone();
   }
 
@@ -1399,6 +1430,12 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
   return (
     <div className="fdv-card">
       <span className="fdv-type-tag">{editing ? "Frage bearbeiten" : "Neue Frage"}</span>
+      {!editing && restored && (
+        <p className="fdv-sub" style={{ marginTop: 8 }}>
+          Entwurf wiederhergestellt.{" "}
+          <button type="button" className="fdv-link-btn" onClick={discardDraft}>Entwurf verwerfen</button>
+        </p>
+      )}
       <form onSubmit={submit}>
         <label className="fdv-label">Kapitel</label>
         <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
@@ -2319,8 +2356,9 @@ function FdvTrainerCloud() {
 
   const [offlineMode, setOfflineMode] = useState(false);
 
+  const loadedOnce = useRef(false);
   const loadData = useCallback(async (userId) => {
-    setDataLoaded(false);
+    if (!loadedOnce.current) setDataLoaded(false);
     const cacheKey = "lokwerk300-cache-" + userId;
     let chapterRows, questionRows, progressRows, adminRow, unlockRows = [];
     let failed = false;
@@ -2393,15 +2431,19 @@ function FdvTrainerCloud() {
     setChapters(orderedChapters);
     setProgress(progressMap);
     setIsAdmin(!!adminRow);
+    loadedOnce.current = true;
     setDataLoaded(true);
     return orderedChapters;
   }, []);
 
+  const sessionUserId = session && session.user ? session.user.id : null;
   useEffect(() => {
-    if (session && session.user) {
-      loadData(session.user.id);
+    if (sessionUserId) {
+      loadData(sessionUserId);
+    } else {
+      loadedOnce.current = false;
     }
-  }, [session, loadData]);
+  }, [sessionUserId, loadData]);
 
   const allQuestions = useMemo(() => chapters.flatMap((c) => c.questions), [chapters]);
   const wrongCount = useMemo(
