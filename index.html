@@ -203,10 +203,14 @@
           flex: 1;
           border-radius: 2px;
           background: var(--panel-border);
+          box-sizing: content-box;
+          padding: 10px 0;
+          margin: -10px 0;
+          background-clip: content-box;
         }
-        .fdv-progress-tick.current { background: var(--grey-dark); }
-        .fdv-progress-tick.correct { background: var(--green); }
-        .fdv-progress-tick.wrong { background: var(--red); }
+        .fdv-progress-tick.current { background-color: var(--grey-dark); }
+        .fdv-progress-tick.correct { background-color: var(--green); }
+        .fdv-progress-tick.wrong { background-color: var(--red); }
         .fdv-card {
           background: var(--panel);
           border: 1px solid var(--panel-border);
@@ -2533,31 +2537,43 @@ function FdvTrainerCloud() {
   }
 
   // Show a question: restore the saved answer (read-only review) if it was already answered.
-  function openQuestion(q, answers) {
+  function openQuestion(q, answers, drafts) {
     const saved = answers && answers[q.id];
+    const pending = drafts && drafts[q.id];
     if (saved) {
       setDraft(saved);
       setRevealed(true);
+    } else if (pending) {
+      setDraft(pending);
+      setRevealed(false);
     } else {
       loadQuestion(q);
     }
+  }
+
+  // Frei zwischen den Fragen springen; angefangene (noch nicht geprüfte) Eingaben bleiben erhalten.
+  function goTo(newIndex) {
+    if (!session_ || newIndex < 0 || newIndex >= session_.questions.length) return;
+    const cur = session_.questions[session_.index];
+    const keepDraft = screen === "quiz" && cur && !revealed && draft ? draft : null;
+    const drafts = { ...(session_.drafts || {}) };
+    if (keepDraft) drafts[cur.id] = keepDraft;
+    setSessionQuiz((s) => ({ ...s, index: newIndex, drafts }));
+    openQuestion(session_.questions[newIndex], session_.answers, drafts);
+    setScreen("quiz");
   }
 
   function next() {
     if (session_.index + 1 >= session_.questions.length) {
       setScreen("result");
     } else {
-      const nextIndex = session_.index + 1;
-      setSessionQuiz((s) => ({ ...s, index: nextIndex }));
-      openQuestion(session_.questions[nextIndex], session_.answers);
+      goTo(session_.index + 1);
     }
   }
 
   function goBack() {
     if (!session_ || session_.index <= 0) return;
-    const newIndex = session_.index - 1;
-    setSessionQuiz((s) => ({ ...s, index: newIndex }));
-    openQuestion(session_.questions[newIndex], session_.answers);
+    goTo(session_.index - 1);
   }
   async function reportQuestion(qId) {
     const note = window.prompt("Was stimmt an dieser Frage nicht? (optional, kann auch leer bleiben)");
@@ -2933,7 +2949,15 @@ function FdvTrainerCloud() {
               else if (session_.results && session_.results[q.id] !== undefined) {
                 cls += session_.results[q.id] ? " correct" : " wrong";
               }
-              return <div key={q.id} className={cls} />;
+              return (
+                <div
+                  key={q.id}
+                  className={cls}
+                  style={{ cursor: "pointer" }}
+                  title={"Frage " + (i + 1)}
+                  onClick={() => goTo(i)}
+                />
+              );
             })}
           </div>
 
@@ -2973,25 +2997,27 @@ function FdvTrainerCloud() {
                 <button className="fdv-check-btn enabled" onClick={check}>Prüfen</button>
               )}
 
-              {revealed && (
-                <>
-                  {currentQ.explanation && (
-                    <div className="fdv-explanation">
-                      <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
-                    </div>
-                  )}
-                  <div className="fdv-nav-row">
-                    {session_.index > 0 && (
-                      <button type="button" className="fdv-prev-btn" onClick={goBack}>
-                        ‹ Vorherige
-                      </button>
-                    )}
-                    <button className="fdv-next-btn" onClick={next}>
-                      {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
-                    </button>
-                  </div>
-                </>
+              {revealed && currentQ.explanation && (
+                <div className="fdv-explanation">
+                  <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
+                </div>
               )}
+              <div className="fdv-nav-row">
+                {session_.index > 0 && (
+                  <button type="button" className="fdv-prev-btn" onClick={goBack}>
+                    ‹ Vorherige
+                  </button>
+                )}
+                {revealed ? (
+                  <button className="fdv-next-btn" onClick={next}>
+                    {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
+                  </button>
+                ) : (
+                  <button type="button" className="fdv-prev-btn" style={{ marginLeft: "auto" }} onClick={next}>
+                    {session_.index + 1 >= session_.questions.length ? "Zur Auswertung" : "Überspringen ›"}
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </>
@@ -3012,6 +3038,19 @@ function FdvTrainerCloud() {
             {session_.correctCount}/{session_.questions.length}
           </div>
           <div className="fdv-result-sub">richtig beantwortet</div>
+          {(() => {
+            const open = session_.questions.findIndex((q) => session_.results[q.id] === undefined);
+            const n = session_.questions.filter((q) => session_.results[q.id] === undefined).length;
+            if (open < 0) return null;
+            return (
+              <div style={{ margin: "12px 0" }}>
+                <div className="fdv-result-sub">{n} Frage(n) noch nicht beantwortet</div>
+                <button className="fdv-result-btn" style={{ marginTop: 8 }} onClick={() => goTo(open)}>
+                  Offene Fragen beantworten
+                </button>
+              </div>
+            );
+          })()}
           <div className="fdv-result-actions">
             {session_.code && (
               <button className="fdv-result-btn" onClick={() => { const chapter = chapters.find((c) => c.code === session_.code); startChapter(chapter); }}>
