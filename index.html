@@ -631,6 +631,18 @@ function chapterStats(chapter, progress) {
   return { attempted, correct, total: chapter.questions.length };
 }
 
+// Suche: Gross-/Kleinschreibung und Umlaute ignorieren (ü = u, ä = a, ...)
+function foldText(t) {
+  return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
+}
+function questionSearchText(q, chapter) {
+  const parts = [chapter.code, chapter.title, q.prompt, q.explanation, q.source];
+  (q.options || []).forEach((o) => parts.push(o));
+  (q.statements || []).forEach((st) => parts.push(st.text));
+  (q.pairs || []).forEach((pr) => { parts.push(pr.left); parts.push(pr.right); });
+  return foldText(parts.join(" "));
+}
+
 // Wiederholen nach System: Abstand in Tagen je nach Serie richtiger Antworten in Folge
 const REVIEW_DAYS = [0, 1, 3, 7, 14, 30];
 function isDue(p) {
@@ -2455,6 +2467,20 @@ function FdvTrainerCloud() {
     () => allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false).length,
     [allQuestions, progress]
   );
+  const [search, setSearch] = useState("");
+  const searchIndex = useMemo(() => {
+    const list = [];
+    chapters.forEach((c) => {
+      if (c.kind === "guide" || !c.accessible) return;
+      c.questions.forEach((q) => list.push({ q, chapter: c, text: questionSearchText(q, c) }));
+    });
+    return list;
+  }, [chapters]);
+  const searchResults = useMemo(() => {
+    const words = foldText(search).split(/\s+/).filter(Boolean);
+    if (words.join("").length < 2) return null;
+    return searchIndex.filter((e) => words.every((w) => e.text.includes(w)));
+  }, [search, searchIndex]);
   const dueQuestions = useMemo(
     () => allQuestions.filter((q) => isDue(progress[q.id])),
     [allQuestions, progress]
@@ -2678,6 +2704,53 @@ function FdvTrainerCloud() {
                 {dueQuestions.length > 0 ? dueQuestions.length + " Fragen zum Wiederholen" : "nichts fällig – gut gemacht"}
               </span>
             </button>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <input
+              className="fdv-input"
+              type="search"
+              placeholder="🔍 Fragen suchen (z. B. Zwergsignal, 300.9 10.3)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {searchResults && (
+              <div style={{ marginTop: 8 }}>
+                {searchResults.length === 0 ? (
+                  <p className="fdv-sub">Keine passenden Fragen gefunden.</p>
+                ) : (
+                  <>
+                    <div className="fdv-chapter-list">
+                      {searchResults.slice(0, 20).map(({ q, chapter }) => (
+                        <button
+                          key={q.id}
+                          className="fdv-chapter-row"
+                          onClick={() => beginSession("Suche", null, [q])}
+                        >
+                          <span className="fdv-chapter-code">{chapter.code}</span>
+                          <span
+                            className="fdv-chapter-title"
+                            style={{ whiteSpace: "normal", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                          >
+                            {q.prompt}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="fdv-sub" style={{ marginTop: 8 }}>
+                      {searchResults.length} Treffer{searchResults.length > 20 ? " (die ersten 20 werden angezeigt)" : ""}
+                    </p>
+                    <button
+                      className="fdv-result-btn primary"
+                      style={{ width: "100%" }}
+                      onClick={() => beginSession("Suche: " + search.trim(), null, searchResults.map((e) => e.q).slice(0, 30))}
+                    >
+                      {Math.min(searchResults.length, 30)} Treffer üben
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {weakChapters.length > 0 && (
