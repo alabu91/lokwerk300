@@ -1,10 +1,10 @@
 // LokWerk300 service worker: caches the app shell + pinned library files so the
-// app still opens and runs (React/Babel/Supabase-client available) without a
+// app still opens and runs (React/Supabase-client available) without a
 // network connection, e.g. in a tunnel. It never caches calls to the
 // Supabase project itself (auth/rest/functions) - those must always be live,
 // since they carry the actual questions, progress and login data.
 
-const CACHE_NAME = "lokwerk300-shell-v2";
+const CACHE_NAME = "lokwerk300-shell-v3";
 
 const APP_SHELL = [
   "./",
@@ -21,7 +21,6 @@ const APP_SHELL = [
 const LIBRARY_URLS = [
   "https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm",
 ];
